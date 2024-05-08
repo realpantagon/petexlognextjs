@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Select, MenuItem, TextField, Button } from "@mui/material";
-// import Record from "./Record";
+import Record from "./Record";
 import axios from "axios";
 
 function Forminput() {
@@ -124,9 +124,6 @@ function Forminput() {
 
   const sendLineNotification = async (message) => {
     const resp = await axios.post("/api", { message });
-    if (!response.ok) {
-      throw new Error("Failed to send Line notification");
-    }
   };
 
   const handleClearClick = () => {
@@ -236,7 +233,7 @@ function Forminput() {
           ADD
         </button>
       </div>
-      {/* <Record data={data} /> */}
+      <Record data={data} />
       <div className="Summary">
         <p className="total">Total : </p>
         <p className="totaldata">

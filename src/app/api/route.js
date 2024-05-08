@@ -13,7 +13,7 @@ export async function POST(req) {
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization: `Bearer ${token}`,
       },
-      data: `message=${JSON.stringify(message)}`,
+      data: `message=${message}`,
     });
 
     return NextResponse.json(response.data);
