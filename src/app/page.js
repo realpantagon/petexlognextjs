@@ -37,7 +37,6 @@ function Forminput() {
       setCurrencies(currencyData);
 
       // Clear stored data after successful fetch
-      localStorage.removeItem("formData");
     } catch (error) {
       setError(error);
     } finally {
@@ -94,32 +93,31 @@ function Forminput() {
 
   const handleAddClick = () => {
     const timestamp = new Date().toLocaleString("en-US", { hour12: false });
+    const formattedAmount = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(amount));
+    const total = type === "Buying" ? rate * amount : -(rate * amount);
+    const formattedTotal = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total);
     const newData = {
       time: timestamp,
       currency: selectedOption,
       rate,
-      amount,
+      amount: formattedAmount,
       type,
-      total: type === "Buying" ? rate * amount : -(rate * amount),
+      total: formattedTotal,
     };
     setData([...data, newData]);
     setSelectedOption("");
     setRate("");
     setAmount("");
-
+  
     // Store the updated data in localStorage
     localStorage.setItem("formData", JSON.stringify([...data, newData]));
-
+  
     // Send Line notification
-    const message = `${timestamp}\n ${selectedOption}\n ${rate}\n ${amount}\n ${type}\n ${newData.total.toFixed(
-      2
-    )} baht`;
+    const message = `${timestamp}\n ${selectedOption}\n ${rate}\n ${formattedAmount}\n ${type}\n ${formattedTotal} baht`;
     console.log(message);
     sendLineNotification(message)
       .then(() => console.log("Line notification sent successfully"))
-      .catch((error) =>
-        console.error("Error sending Line notification:", error)
-      );
+      .catch((error) => console.error("Error sending Line notification:", error));
   };
 
   const sendLineNotification = async (message) => {
@@ -235,11 +233,17 @@ function Forminput() {
       </div>
       <Record data={data} />
       <div className="Summary">
-        <p className="total">Total : </p>
-        <p className="totaldata">
-          {data.reduce((acc, item) => acc + item.total, 0).toFixed(2)}{" "}
-        </p>
-      </div>
+  <p className="total">Total : </p>
+  <p className="totaldata">
+  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB' }).format(
+    data.reduce((acc, item) => acc + parseFloat(item.total.replace(",", "")), 0)
+  )}
+</p>
+
+
+
+
+</div>
 
       <button
         onClick={handleClearClick}
