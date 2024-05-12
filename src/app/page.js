@@ -6,6 +6,7 @@ import Record from "./Record";
 import axios from "axios";
 
 function Forminput() {
+  const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [rate, setRate] = useState("");
   const [amount, setAmount] = useState("");
@@ -15,6 +16,7 @@ function Forminput() {
   const [error, setError] = useState(null);
   const [currencies, setCurrencies] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [initialMoney, setInitialMoney] = useState("");
 
   const fetchCurrenciesData = async () => {
     setIsLoading(true);
@@ -35,13 +37,11 @@ function Forminput() {
         rate: record.fields.Rate,
       }));
       setCurrencies(currencyData);
-
-      // Clear stored data after successful fetch
     } catch (error) {
       setError(error);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false); // Set isRefreshing to false after fetching data
+      setIsRefreshing(false);
     }
   };
 
@@ -49,22 +49,35 @@ function Forminput() {
     const storedData = localStorage.getItem("formData");
     if (storedData) {
       setData(JSON.parse(storedData));
-    } else {
-      setData([]);
+    }
+
+    const storedBranch = localStorage.getItem("selectedBranch");
+    if (storedBranch) {
+      setSelectedBranch(storedBranch);
+    }
+
+    const storedInitialMoney = localStorage.getItem("initialMoney");
+    if (storedInitialMoney) {
+      setInitialMoney(storedInitialMoney);
     }
 
     fetchCurrenciesData();
 
-    // Fetch data every minute
     const interval = setInterval(() => {
-      setIsRefreshing(true); // Set isRefreshing to true before fetching data
+      setIsRefreshing(true);
       fetchCurrenciesData();
-    }, 60000); // 60000 milliseconds = 1 minute
+    }, 60000);
 
     return () => {
-      clearInterval(interval); // Clean up the interval on component unmount
+      clearInterval(interval);
     };
   }, []);
+
+  const handleBranchChange = (event) => {
+    const selectedBranch = event.target.value;
+    setSelectedBranch(selectedBranch);
+    localStorage.setItem("selectedBranch", selectedBranch);
+  };
 
   const handleOptionChange = (event) => {
     const selectedCurrency = event.target.value;
@@ -75,7 +88,7 @@ function Forminput() {
     if (currencyInfo) {
       setRate(currencyInfo.rate);
     } else {
-      setRate(""); // Clear rate if currency not found
+      setRate("");
     }
   };
 
@@ -91,59 +104,96 @@ function Forminput() {
     setType(event.target.value);
   };
 
+  const handleInitialMoneyChange = (event) => {
+    const value = event.target.value;
+    setInitialMoney(value);
+    localStorage.setItem("initialMoney", value);
+  };
+
   const handleAddClick = () => {
     const timestamp = new Date().toLocaleString("en-US", { hour12: false });
-    const formattedAmount = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(amount));
+    const formattedAmount = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(parseFloat(amount));
     const total = type === "Buying" ? rate * amount : -(rate * amount);
-    const formattedTotal = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(total);
+    const formattedTotal = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(total);
     const newData = {
       time: timestamp,
+      branch: selectedBranch,
       currency: selectedOption,
       rate,
       amount: formattedAmount,
       type,
       total: formattedTotal,
     };
-    setData([...data, newData]);
+    const updatedData = [...data, newData];
+    setData(updatedData);
     setSelectedOption("");
     setRate("");
     setAmount("");
   
-    // Store the updated data in localStorage
-    localStorage.setItem("formData", JSON.stringify([...data, newData]));
+    localStorage.setItem("formData", JSON.stringify(updatedData));
   
-    // Send Line notification
-    const message = `${timestamp}\n ${selectedOption}\n ${rate}\n ${formattedAmount}\n ${type}\n ${formattedTotal} baht`;
+    const totalBought = updatedData.reduce(
+      (acc, item) => acc + parseFloat(item.total.replace(",", "")),
+      0
+    );
+    const remainingMoney = parseFloat(initialMoney) - totalBought;
+  
+    const message = `${timestamp}\n ${selectedBranch}\n ${selectedOption}\n ${rate}\n ${formattedAmount}\n ${type}\n ${formattedTotal} baht\n ซื้อแล้ว: ${new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "THB",
+    }).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "THB",
+    }).format(remainingMoney)}`;
+  
     console.log(message);
     sendLineNotification(message)
       .then(() => console.log("Line notification sent successfully"))
-      .catch((error) => console.error("Error sending Line notification:", error));
+      .catch((error) =>
+        console.error("Error sending Line notification:", error)
+      );
   };
 
   const sendLineNotification = async (message) => {
-    const resp = await axios.post("/api", { message });
+    await axios.post("/api", { message });
   };
 
   const handleClearClick = () => {
     if (window.confirm("Are you sure you want to delete all data?")) {
       setData([]);
+      setSelectedBranch("");
+      setInitialMoney("");
       localStorage.removeItem("formData");
+      localStorage.removeItem("selectedBranch");
+      localStorage.removeItem("initialMoney");
     }
   };
 
   const exportToGoogleSheet = () => {
-    // Convert data to CSV format
     const csvData = [
-      ["Time", "Currency", "Rate", "Amount", "Type", "Total"].join(","),
-      ...data.map(
-        (entry) =>
-          `${entry.time},${entry.currency},${entry.rate},${entry.amount},${
-            entry.type
-          },${entry.total.toFixed(2)}`
-      ),
+      ["Time", "Branch", "Currency", "Rate", "Amount", "Type", "Total", "ซื้อแล้ว", "เหลือเงิน"].join(","),
+      ...data.map((entry) => {
+        const totalBought = data.slice(0, data.indexOf(entry) + 1).reduce(
+          (acc, item) => acc + parseFloat(item.total.replace(",", "")),
+          0
+        );
+        const remainingMoney = parseFloat(initialMoney) - totalBought;
+        return `${entry.time},${entry.branch},${entry.currency},${entry.rate},${entry.amount},${entry.type},${parseFloat(entry.total.replace(",", "")).toFixed(2)},${new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "THB",
+        }).format(totalBought)},${new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "THB",
+        }).format(remainingMoney)}`;
+      }),
     ].join("\n");
-
-    // Create a temporary anchor element to download the CSV file
+  
     const downloadLink = document.createElement("a");
     const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -156,7 +206,20 @@ function Forminput() {
 
   return (
     <div className="p-5">
-      <div className="text-3xl text-center">PETEX DATA</div>
+      <div className="grid grid-cols-2 gap-4">
+        <Select value={selectedBranch} onChange={handleBranchChange}>
+          <MenuItem value="">Select a branch</MenuItem>
+          <MenuItem value="N PARC">N PARC</MenuItem>
+          <MenuItem value="Nimman Promenade">Nimman Promenade</MenuItem>
+        </Select>
+        <TextField
+          label="เงินตั้งต้น"
+          value={initialMoney}
+          onChange={handleInitialMoneyChange}
+        />
+      </div>
+      <div className="text-3xl text-center mt-8">PETEX DATA</div>
+
       {isRefreshing && <div>Refreshing data...</div>}
       <div className="grid grid-cols-10 gap-4 m-4 p-4 rounded-lg">
         <button
@@ -180,6 +243,7 @@ function Forminput() {
             </MenuItem>
           ))}
         </Select>
+
         <div className="col-span-2">
           <TextField
             id="rate"
@@ -189,8 +253,8 @@ function Forminput() {
             label="Rate"
             variant="outlined"
             className="w-full"
-            inputProps={{ pattern: "^[0-9]*.?[0-9]*$" }} // Allow numbers and decimals
-            error={!/^[0-9]*\.?[0-9]*$/.test(rate)} // Check if input is a valid number
+            inputProps={{ pattern: "^[0-9]*.?[0-9]*$" }}
+            error={!/^[0-9]*\.?[0-9]*$/.test(rate)}
             helperText={
               !/^[0-9]*\.?[0-9]*$/.test(rate)
                 ? "Please enter a valid number"
@@ -207,8 +271,8 @@ function Forminput() {
             label="Amount"
             className="w-full"
             variant="outlined"
-            inputProps={{ pattern: "^[0-9]*.?[0-9]*$" }} // Allow numbers and decimals
-            error={!/^[0-9]*\.?[0-9]*$/.test(amount)} // Check if input is a valid number
+            inputProps={{ pattern: "^[0-9]*.?[0-9]*$" }}
+            error={!/^[0-9]*\.?[0-9]*$/.test(amount)}
             helperText={
               !/^[0-9]*\.?[0-9]*$/.test(amount)
                 ? "Please enter a valid number"
@@ -226,24 +290,46 @@ function Forminput() {
         </Select>
         <button
           onClick={handleAddClick}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded "
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
           ADD
         </button>
       </div>
       <Record data={data} />
       <div className="Summary">
-  <p className="total">Total : </p>
-  <p className="totaldata">
-  {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB' }).format(
-    data.reduce((acc, item) => acc + parseFloat(item.total.replace(",", "")), 0)
-  )}
-</p>
-
-
-
-
-</div>
+        <p className="total">เงินตั้งต้นวัน : </p>
+        <p className="totaldata">
+          {new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "THB",
+          }).format(parseFloat(initialMoney))}
+        </p>
+        <p className="total">ซื้อแล้ว : </p>
+        <p className="totaldata">
+          {new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "THB",
+          }).format(
+            data.reduce(
+              (acc, item) => acc + parseFloat(item.total.replace(",", "")),
+              0
+            )
+          )}
+        </p>
+        <p className="total">เหลือเงิน : </p>
+        <p className="totaldata">
+          {new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "THB",
+          }).format(
+            parseFloat(initialMoney) -
+              data.reduce(
+                (acc, item) => acc + parseFloat(item.total.replace(",", "")),
+                0
+              )
+          )}
+        </p>
+      </div>
 
       <button
         onClick={handleClearClick}
