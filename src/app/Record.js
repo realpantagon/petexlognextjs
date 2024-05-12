@@ -2,6 +2,8 @@ import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 
 function Record({ data }) {
+  const reversedData = [...data].reverse(); // Create a new array with reversed order
+
   return (
     <Table>
       <TableHead>
@@ -15,13 +17,19 @@ function Record({ data }) {
         </TableRow>
       </TableHead>
       <TableBody>
-        {data.map((item, index) => (
+        {reversedData.map((item, index) => (
           <TableRow key={index}>
             <TableCell>{item.time}</TableCell>
             <TableCell>{item.currency}</TableCell>
             <TableCell>{item.rate}</TableCell>
             <TableCell>{item.amount}</TableCell>
-            <TableCell>{item.type}</TableCell>
+            <TableCell
+              style={{
+                color: item.type === "Buying" ? "#00b512" : "#f7786b",
+              }}
+            >
+              {item.type}
+            </TableCell>
             <TableCell>{item.total}</TableCell>
           </TableRow>
         ))}
