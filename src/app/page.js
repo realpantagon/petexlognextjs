@@ -32,11 +32,38 @@ function Forminput() {
           },
         }
       );
+
       const currencyData = response.data.records.map((record) => ({
         label: record.fields.Currency,
         rate: record.fields.Rate,
       }));
-      setCurrencies(currencyData);
+
+      const desiredOrder = [
+        "US Dollar $50-100",
+        "US Dollar $5-20",
+        "US Dollar $1",
+        "Euro",
+        "Japanese Yen",
+        "British Pound",
+        "Singapore Dollar",
+        "Australian Dollar",
+        "Swiss Franc",
+        "Hong Kong Dollar",
+        "Canadian Dollar",
+        "New Zealand Dollar",
+        "Swedish Krona",
+        "Taiwan Dollar",
+        "Norwegian Krone",
+        "Malaysian Ringgit",
+        "Chinese Yuan Renminbi",
+        "South Korean Won",
+      ];
+
+      const sortedCurrencyData = currencyData.sort(
+        (a, b) => desiredOrder.indexOf(a.label) - desiredOrder.indexOf(b.label)
+      );
+
+      setCurrencies(sortedCurrencyData);
     } catch (error) {
       setError(error);
     } finally {
@@ -192,6 +219,21 @@ function Forminput() {
           currency: "THB",
         }).format(remainingMoney)}`;
       }),
+      "",
+      "Last Transaction History:",
+      `ซื้อแล้ว,${new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "THB",
+      }).format(
+        data.reduce((acc, item) => acc + parseFloat(item.total.replace(",", "")), 0)
+      )}`,
+      `เหลือเงิน,${new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "THB",
+      }).format(
+        parseFloat(initialMoney) -
+          data.reduce((acc, item) => acc + parseFloat(item.total.replace(",", "")), 0)
+      )}`,
     ].join("\n");
   
     const downloadLink = document.createElement("a");
