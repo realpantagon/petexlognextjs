@@ -1,8 +1,12 @@
 import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
+import { Table, TableBody, TableCell, TableHead, TableRow, Button } from "@mui/material";
 
-function Record({ data }) {
+function Record({ data, onEdit }) {
   const reversedData = [...data].reverse(); // Create a new array with reversed order
+
+  const handleEditClick = (record) => {
+    onEdit(record);
+  };
 
   return (
     <Table>
@@ -14,6 +18,7 @@ function Record({ data }) {
           <TableCell>Amount</TableCell>
           <TableCell>Type</TableCell>
           <TableCell>Total</TableCell>
+          <TableCell>Actions</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -31,6 +36,9 @@ function Record({ data }) {
               {item.type}
             </TableCell>
             <TableCell>{item.total}</TableCell>
+            <TableCell>
+              <Button onClick={() => handleEditClick(item)}>Edit</Button>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>

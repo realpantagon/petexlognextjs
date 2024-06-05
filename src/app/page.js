@@ -8,6 +8,7 @@ import RecordDisplay from "./components/RecordDisplay";
 import Summary from "./components/Summary";
 import FormActions from "./components/FormActions";
 import { TextField } from "@mui/material";
+import EditRecordModal from "./components/EditRecordModal";
 
 function Forminput() {
   const [selectedBranch, setSelectedBranch] = useState("");
@@ -21,6 +22,7 @@ function Forminput() {
   const [currencies, setCurrencies] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [initialMoney, setInitialMoney] = useState("");
+  const [editingRecord, setEditingRecord] = useState(null);
 
   const fetchCurrenciesData = async () => {
     setIsLoading(true);
@@ -78,15 +80,15 @@ function Forminput() {
 
   useEffect(() => {
     const storedData = localStorage.getItem("formData");
-if (storedData) {
-  try {
-    setData(JSON.parse(storedData));
-  } catch (error) {
-    console.error("Error parsing stored data:", error);
-    // Handle the error, e.g., clear the stored data
-    localStorage.removeItem("formData");
-  }
-}
+    if (storedData) {
+      try {
+        setData(JSON.parse(storedData));
+      } catch (error) {
+        console.error("Error parsing stored data:", error);
+        // Handle the error, e.g., clear the stored data
+        localStorage.removeItem("formData");
+      }
+    }
 
     const storedBranch = localStorage.getItem("selectedBranch");
     if (storedBranch) {
@@ -147,51 +149,74 @@ if (storedData) {
     localStorage.setItem("initialMoney", value);
   };
 
-  const handleAddClick = () => {
-    const timestamp = new Date().toLocaleString("en-US", { hour12: false });
-    const formattedAmount = new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(parseFloat(amount));
-    const total = type === "Buying" ? rate * amount : -(rate * amount);
-    const formattedTotal = new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(total);
-    const newData = {
-      time: timestamp,
-      branch: selectedBranch,
-      currency: selectedOption,
-      rate,
-      amount: formattedAmount,
-      type,
-      total: formattedTotal,
-    };
-    const updatedData = [...data, newData];
-    setData(updatedData);
+  const handleEditRecord = (record) => {
+    setEditingRecord(record);
+  };
+
+  const handleAddClick = (editedRecord = null) => {
+    let updatedData;
+    let timestamp;
+  
+    if (editedRecord) {
+      // Update the existing record
+      updatedData = data.map((record) =>
+        record.time === editedRecord.time ? editedRecord : record
+      );
+      setData(updatedData);
+      setEditingRecord(null);
+    } else {
+      // Add a new record
+      timestamp = new Date().toLocaleString("en-US", { hour12: false });
+      const formattedAmount = new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(parseFloat(amount));
+      const total = type === "Buying" ? rate * amount : -(rate * amount);
+      const formattedTotal = new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(total);
+      const newData = {
+        time: timestamp,
+        branch: selectedBranch,
+        currency: selectedOption,
+        rate,
+        amount: formattedAmount,
+        type,
+        total: formattedTotal,
+      };
+      updatedData = [...data, newData];
+      setData(updatedData);
+    }
+  
     setSelectedOption("");
     setRate("");
     setAmount("");
-
+  
     localStorage.setItem("formData", JSON.stringify(updatedData));
-
+  
     const totalBought = updatedData.reduce(
       (acc, item) => acc + parseFloat(item.total.replace(",", "")),
       0
     );
     const remainingMoney = parseFloat(initialMoney) - totalBought;
-
-    const message = `${timestamp}\n ${selectedBranch}\n ${selectedOption}\n ${rate}\n ${formattedAmount}\n ${type}\n ${formattedTotal} baht\n ซื้อแล้ว: ${new Intl.NumberFormat(
-      "en-US",
-      {
-        style: "currency",
-        currency: "THB",
-      }
-    ).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
+  
+    const message = `${
+      editedRecord ? "" : timestamp + "\n"
+    }${selectedBranch}\n ${
+      editedRecord ? editedRecord.currency : selectedOption
+    }\n ${editedRecord ? editedRecord.rate : rate}\n ${
+      editedRecord ? editedRecord.amount : amount
+    }\n ${editedRecord ? editedRecord.type : type}\n ${
+      editedRecord ? editedRecord.total : updatedData[updatedData.length - 1].total
+    } baht\n ซื้อแล้ว: ${new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "THB",
+    }).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "THB",
     }).format(remainingMoney)}`;
-
+  
     console.log(message);
     sendLineNotification(message)
       .then(() => console.log("Line notification sent successfully"))
@@ -243,7 +268,14 @@ if (storedData) {
       />
       <Summary initialMoney={initialMoney} data={data} />
       <FormActions handleClearClick={handleClearClick} />
-      <RecordDisplay data={data} />
+      <RecordDisplay data={data} onEdit={handleEditRecord} />
+      {editingRecord && (
+        <EditRecordModal
+        record={editingRecord}
+        onSave={handleAddClick}
+        onCancel={() => setEditingRecord(null)}
+      />
+      )}
     </div>
   );
 }
