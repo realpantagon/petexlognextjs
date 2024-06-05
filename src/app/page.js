@@ -207,7 +207,6 @@ if (storedData) {
   const handleClearClick = () => {
     if (window.confirm("Are you sure you want to delete all data?")) {
       setData([]);
-      setSelectedBranch("");
       setInitialMoney("");
       localStorage.removeItem("formData");
       localStorage.removeItem("selectedBranch");
