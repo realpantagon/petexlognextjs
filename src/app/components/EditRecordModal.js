@@ -11,7 +11,7 @@ import {
   MenuItem,
 } from "@mui/material";
 
-function EditRecordModal({ record, onSave, onCancel }) {
+function EditRecordModal({ record, data, setData, onSave, onCancel }) {
   const [editedRecord, setEditedRecord] = useState(record);
 
   useEffect(() => {
@@ -29,23 +29,21 @@ function EditRecordModal({ record, onSave, onCancel }) {
     const updatedRecord = {
       ...editedRecord,
       rate: parseFloat(editedRecord.rate),
-      amount: new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(parseFloat(editedRecord.amount)),
-      total: new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(
-        editedRecord.type === "Buying"
-          ? parseFloat(editedRecord.rate) * parseFloat(editedRecord.amount)
-          : -(parseFloat(editedRecord.rate) * parseFloat(editedRecord.amount))
-      ),
+      amount: parseFloat(editedRecord.amount).toFixed(2),
+      total: (
+        parseFloat(editedRecord.rate) * parseFloat(editedRecord.amount)
+      ).toFixed(2),
     };
 
-    onSave(updatedRecord);
+    const updatedData = data.map((record) =>
+      record.time === updatedRecord.time ? updatedRecord : record
+    );
+
+    onSave(updatedData);
     onCancel();
   };
+  
+  
 
   return (
     <Dialog open onClose={onCancel}>

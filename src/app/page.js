@@ -153,14 +153,14 @@ function Forminput() {
     setEditingRecord(record);
   };
 
-  const handleAddClick = (editedRecord = null) => {
+  const handleAddClick = () => {
     let updatedData;
     let timestamp;
-  
-    if (editedRecord) {
+    
+    if (editingRecord) {
       // Update the existing record
       updatedData = data.map((record) =>
-        record.time === editedRecord.time ? editedRecord : record
+        record.time === editingRecord.time ? { ...editingRecord } : record
       );
       setData(updatedData);
       setEditingRecord(null);
@@ -201,18 +201,13 @@ function Forminput() {
     );
     const remainingMoney = parseFloat(initialMoney) - totalBought;
   
-    const message = `${
-      editedRecord ? "" : timestamp + "\n"
-    }${selectedBranch}\n ${
-      editedRecord ? editedRecord.currency : selectedOption
-    }\n ${editedRecord ? editedRecord.rate : rate}\n ${
-      editedRecord ? editedRecord.amount : amount
-    }\n ${editedRecord ? editedRecord.type : type}\n ${
-      editedRecord ? editedRecord.total : updatedData[updatedData.length - 1].total
-    } baht\n ซื้อแล้ว: ${new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-    }).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
+    const message = `${selectedBranch}\n ${selectedOption} ${type}\n ${rate} x ${amount} \n ${updatedData[updatedData.length - 1].total} baht\n ซื้อแล้ว: ${new Intl.NumberFormat(
+      "en-US",
+      {
+        style: "currency",
+        currency: "THB",
+      }
+    ).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "THB",
     }).format(remainingMoney)}`;
@@ -224,6 +219,7 @@ function Forminput() {
         console.error("Error sending Line notification:", error)
       );
   };
+  
 
   const sendLineNotification = async (message) => {
     await axios.post("/api", { message });
@@ -271,10 +267,10 @@ function Forminput() {
       <RecordDisplay data={data} onEdit={handleEditRecord} />
       {editingRecord && (
         <EditRecordModal
-        record={editingRecord}
-        onSave={handleAddClick}
-        onCancel={() => setEditingRecord(null)}
-      />
+          record={editingRecord}
+          onSave={handleAddClick}
+          onCancel={() => setEditingRecord(null)}
+        />
       )}
     </div>
   );
