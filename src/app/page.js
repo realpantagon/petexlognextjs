@@ -1,9 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Select, MenuItem, TextField, Button } from "@mui/material";
-import Record from "./Record";
 import axios from "axios";
+import BranchSelect from "./components/BranchSelect";
+import CurrencyForm from "./components/CurrencyForm";
+import RecordDisplay from "./components/RecordDisplay";
+import Summary from "./components/Summary";
+import FormActions from "./components/FormActions";
+import { TextField } from "@mui/material";
 
 function Forminput() {
   const [selectedBranch, setSelectedBranch] = useState("");
@@ -162,23 +166,26 @@ function Forminput() {
     setSelectedOption("");
     setRate("");
     setAmount("");
-  
+
     localStorage.setItem("formData", JSON.stringify(updatedData));
-  
+
     const totalBought = updatedData.reduce(
       (acc, item) => acc + parseFloat(item.total.replace(",", "")),
       0
     );
     const remainingMoney = parseFloat(initialMoney) - totalBought;
-  
-    const message = `${timestamp}\n ${selectedBranch}\n ${selectedOption}\n ${rate}\n ${formattedAmount}\n ${type}\n ${formattedTotal} baht\n ซื้อแล้ว: ${new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-    }).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
+
+    const message = `${timestamp}\n ${selectedBranch}\n ${selectedOption}\n ${rate}\n ${formattedAmount}\n ${type}\n ${formattedTotal} baht\n ซื้อแล้ว: ${new Intl.NumberFormat(
+      "en-US",
+      {
+        style: "currency",
+        currency: "THB",
+      }
+    ).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "THB",
     }).format(remainingMoney)}`;
-  
+
     console.log(message);
     sendLineNotification(message)
       .then(() => console.log("Line notification sent successfully"))
@@ -202,197 +209,36 @@ function Forminput() {
     }
   };
 
-  const exportToGoogleSheet = () => {
-    const csvData = [
-      ["Time", "Branch", "Currency", "Rate", "Amount", "Type", "Total", "ซื้อแล้ว", "เหลือเงิน"].join(","),
-      ...data.map((entry) => {
-        const totalBought = data.slice(0, data.indexOf(entry) + 1).reduce(
-          (acc, item) => acc + parseFloat(item.total.replace(",", "")),
-          0
-        );
-        const remainingMoney = parseFloat(initialMoney) - totalBought;
-        return `${entry.time},${entry.branch},${entry.currency},${entry.rate},${entry.amount},${entry.type},${parseFloat(entry.total.replace(",", "")).toFixed(2)},${new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "THB",
-        }).format(totalBought)},${new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "THB",
-        }).format(remainingMoney)}`;
-      }),
-      "",
-      "Last Transaction History:",
-      `ซื้อแล้ว,${new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "THB",
-      }).format(
-        data.reduce((acc, item) => acc + parseFloat(item.total.replace(",", "")), 0)
-      )}`,
-      `เหลือเงิน,${new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "THB",
-      }).format(
-        parseFloat(initialMoney) -
-          data.reduce((acc, item) => acc + parseFloat(item.total.replace(",", "")), 0)
-      )}`,
-    ].join("\n");
-  
-    const downloadLink = document.createElement("a");
-    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    downloadLink.href = url;
-    downloadLink.download = "data.csv";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-  };
-
   return (
-    <div className="p-5">
-      <div className="grid grid-cols-2 gap-4">
-        <Select value={selectedBranch} onChange={handleBranchChange}>
-          <MenuItem value="">Select a branch</MenuItem>
-          <MenuItem value="N PARC">N PARC</MenuItem>
-          <MenuItem value="Nimman Promenade">Nimman Promenade</MenuItem>
-        </Select>
+    <div className="container mx-auto p-4">
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <BranchSelect
+          selectedBranch={selectedBranch}
+          handleBranchChange={handleBranchChange}
+        />
         <TextField
           label="เงินตั้งต้น"
           value={initialMoney}
           onChange={handleInitialMoneyChange}
+          className="w-full"
         />
       </div>
-      <div className="text-3xl text-center mt-8">PETEX DATA</div>
 
-      {isRefreshing && <div>Refreshing data...</div>}
-      <div className="grid grid-cols-10 gap-4 m-4 p-4 rounded-lg">
-        <button
-          onClick={() => {
-            setIsRefreshing(true);
-            fetchCurrenciesData();
-          }}
-          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4 h-full"
-        >
-          Refresh
-        </button>
-        <Select
-          value={selectedOption}
-          onChange={handleOptionChange}
-          className="col-span-2 select"
-        >
-          <MenuItem value="">Select a Currency</MenuItem>
-          {currencies.map((currency) => (
-            <MenuItem key={currency.label} value={currency.label}>
-              {currency.label}
-            </MenuItem>
-          ))}
-        </Select>
-
-        <div className="col-span-2">
-          <TextField
-            id="rate"
-            type="text"
-            value={rate}
-            onChange={handleInput1Change}
-            label="Rate"
-            variant="outlined"
-            className="w-full"
-            inputProps={{ pattern: "^[0-9]*.?[0-9]*$" }}
-            error={!/^[0-9]*\.?[0-9]*$/.test(rate)}
-            helperText={
-              !/^[0-9]*\.?[0-9]*$/.test(rate)
-                ? "Please enter a valid number"
-                : ""
-            }
-          />
-        </div>
-        <div className="col-span-2">
-          <TextField
-            id="amount"
-            type="text"
-            value={amount}
-            onChange={handleInput2Change}
-            label="Amount"
-            className="w-full"
-            variant="outlined"
-            inputProps={{ pattern: "^[0-9]*.?[0-9]*$" }}
-            error={!/^[0-9]*\.?[0-9]*$/.test(amount)}
-            helperText={
-              !/^[0-9]*\.?[0-9]*$/.test(amount)
-                ? "Please enter a valid number"
-                : ""
-            }
-          />
-        </div>
-        <Select
-          value={type}
-          onChange={handleTypeChange}
-          className="col-span-2 type"
-        >
-          <MenuItem value="Buying">Buying</MenuItem>
-          <MenuItem value="Selling">Selling</MenuItem>
-        </Select>
-        <button
-          onClick={handleAddClick}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          ADD
-        </button>
-      </div>
-      <Record data={data} />
-      <div className="bg-gray-100 rounded-lg p-6 shadow-md">
-  <div className="grid grid-cols-3 gap-8 mb-4">
-    <div>
-      <p className="text-gray-600 font-semibold mb-2">เงินตั้งต้นวัน :</p>
-      <p className="text-lg font-bold text-green-600">
-        {new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "THB",
-        }).format(parseFloat(initialMoney))}
-      </p>
-    </div>
-    <div>
-      <p className="text-gray-600 font-semibold mb-2">ซื้อแล้ว :</p>
-      <p className="text-lg font-bold text-red-600">
-        {new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "THB",
-        }).format(
-          data.reduce(
-            (acc, item) => acc + parseFloat(item.total.replace(",", "")),
-            0
-          )
-        )}
-      </p>
-    </div>
-    <div>
-      <p className="text-gray-600 font-semibold mb-2">เหลือเงิน :</p>
-      <p className="text-lg font-bold text-blue-600">
-        {new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "THB",
-        }).format(
-          parseFloat(initialMoney) -
-            data.reduce(
-              (acc, item) => acc + parseFloat(item.total.replace(",", "")),
-              0
-            )
-        )}
-      </p>
-    </div>
-  </div>
-</div>
-
-      <button
-        onClick={handleClearClick}
-        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
-      >
-        DELETE
-      </button>
-      <button
-        onClick={exportToGoogleSheet}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4 mt-4"
-      >
-        Export as CSV
-      </button>
+      <CurrencyForm
+        selectedOption={selectedOption}
+        handleOptionChange={handleOptionChange}
+        currencies={currencies}
+        rate={rate}
+        amount={amount}
+        handleInput1Change={handleInput1Change}
+        handleInput2Change={handleInput2Change}
+        type={type}
+        handleTypeChange={handleTypeChange}
+        handleAddClick={handleAddClick}
+      />
+      <Summary initialMoney={initialMoney} data={data} />
+      <FormActions handleClearClick={handleClearClick} />
+      <RecordDisplay data={data} />
     </div>
   );
 }
