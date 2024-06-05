@@ -78,9 +78,15 @@ function Forminput() {
 
   useEffect(() => {
     const storedData = localStorage.getItem("formData");
-    if (storedData) {
-      setData(JSON.parse(storedData));
-    }
+if (storedData) {
+  try {
+    setData(JSON.parse(storedData));
+  } catch (error) {
+    console.error("Error parsing stored data:", error);
+    // Handle the error, e.g., clear the stored data
+    localStorage.removeItem("formData");
+  }
+}
 
     const storedBranch = localStorage.getItem("selectedBranch");
     if (storedBranch) {
