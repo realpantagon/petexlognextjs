@@ -5,7 +5,7 @@ import BranchSelect from "./components/BranchSelect";
 import CurrencyForm from "./components/CurrencyForm";
 import RecordDisplay from "./components/RecordDisplay";
 import Summary from "./components/Summary";
-import FormActions from "./components/FormActions";
+import FormActions from "./components/ClearRecordsButton";
 import { TextField } from "@mui/material";
 import EditRecordModal from "./components/EditRecordModal";
 
@@ -161,7 +161,7 @@ function Forminput() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(total);
-  
+
     const airtableData = {
       records: [
         {
@@ -176,7 +176,7 @@ function Forminput() {
         },
       ],
     };
-  
+
     axios
       .post(
         "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/PROMENADE",
@@ -195,25 +195,28 @@ function Forminput() {
       .catch((error) => {
         console.error("Error sending data to Airtable:", error);
       });
-  
+
     setSelectedOption("");
     setRate("");
     setAmount("");
-  
+
     const totalBought = data.reduce(
       (acc, item) => acc + parseFloat(item.total.replace(",", "")),
       0
     );
     const remainingMoney = parseFloat(initialMoney) - totalBought;
-  
-    const message = `${selectedBranch}\n ${selectedOption} ${type}\n ${rate} x ${amount} \n ${formattedTotal} baht\n ซื้อแล้ว: ${new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-    }).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
+
+    const message = `${selectedBranch}\n ${selectedOption} ${type}\n ${rate} x ${amount} \n ${formattedTotal} baht\n ซื้อแล้ว: ${new Intl.NumberFormat(
+      "en-US",
+      {
+        style: "currency",
+        currency: "THB",
+      }
+    ).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "THB",
     }).format(remainingMoney)}`;
-  
+
     console.log(message);
     sendLineNotification(message)
       .then(() => console.log("Line notification sent successfully"))
@@ -230,8 +233,6 @@ function Forminput() {
     if (window.confirm("Are you sure you want to delete all data?")) {
       setData([]);
       setInitialMoney("");
-      localStorage.removeItem("formData");
-      localStorage.removeItem("selectedBranch");
       localStorage.removeItem("initialMoney");
     }
   };
@@ -246,7 +247,6 @@ function Forminput() {
           className="w-full"
         />
       </div>
-
       <CurrencyForm
         selectedOption={selectedOption}
         handleOptionChange={handleOptionChange}
@@ -259,9 +259,8 @@ function Forminput() {
         handleTypeChange={handleTypeChange}
         handleAddClick={handleAddClick}
       />
-      <FormActions handleClearClick={handleClearClick} />
       <RecordDisplay data={data} onEdit={handleEditRecord} />
-
+      <FormActions /> 
     </div>
   );
 }
