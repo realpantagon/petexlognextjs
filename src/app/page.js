@@ -154,60 +154,65 @@ function Forminput() {
   };
 
   const handleAddClick = () => {
-    let updatedData;
-    let timestamp;
-    
-    if (editingRecord) {
-      // Update the existing record
-      updatedData = data.map((record) =>
-        record.time === editingRecord.time ? { ...editingRecord } : record
-      );
-      setData(updatedData);
-      setEditingRecord(null);
-    } else {
-      // Add a new record
-      timestamp = new Date().toLocaleString("en-US", { hour12: false });
-      const formattedAmount = new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(parseFloat(amount));
-      const total = type === "Buying" ? rate * amount : -(rate * amount);
-      const formattedTotal = new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(total);
-      const newData = {
-        time: timestamp,
-        branch: selectedBranch,
-        currency: selectedOption,
-        rate,
-        amount: formattedAmount,
-        type,
-        total: formattedTotal,
-      };
-      updatedData = [...data, newData];
-      setData(updatedData);
-    }
+    const formattedAmount = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(parseFloat(amount));
+    const total = type === "Buying" ? rate * amount : -(rate * amount);
+    const formattedTotal = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(total);
+  
+    // Send data to Airtable
+    const airtableData = {
+      records: [
+        {
+          fields: {
+            Currency: selectedOption,
+            Rate: rate,
+            Amount: formattedAmount,
+            Type: type,
+            Total: formattedTotal,
+            Branch: selectedBranch,
+          },
+        },
+      ],
+    };
+  
+    axios
+      .post(
+        "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Log%20Day",
+        airtableData,
+        {
+          headers: {
+            Authorization:
+              "Bearer patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd779d5726b602d4febe8e383",
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Data sent to Airtable successfully");
+      })
+      .catch((error) => {
+        console.error("Error sending data to Airtable:", error);
+      });
   
     setSelectedOption("");
     setRate("");
     setAmount("");
   
-    localStorage.setItem("formData", JSON.stringify(updatedData));
-  
-    const totalBought = updatedData.reduce(
+    const totalBought = data.reduce(
       (acc, item) => acc + parseFloat(item.total.replace(",", "")),
       0
     );
     const remainingMoney = parseFloat(initialMoney) - totalBought;
   
-    const message = `${selectedBranch}\n ${selectedOption} ${type}\n ${rate} x ${amount} \n ${updatedData[updatedData.length - 1].total} baht\n ซื้อแล้ว: ${new Intl.NumberFormat(
-      "en-US",
-      {
-        style: "currency",
-        currency: "THB",
-      }
-    ).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
+    const message = `${selectedBranch}\n ${selectedOption} ${type}\n ${rate} x ${amount} \n ${formattedTotal} baht\n ซื้อแล้ว: ${new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "THB",
+    }).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "THB",
     }).format(remainingMoney)}`;
@@ -219,7 +224,6 @@ function Forminput() {
         console.error("Error sending Line notification:", error)
       );
   };
-  
 
   const sendLineNotification = async (message) => {
     await axios.post("/api", { message });
@@ -262,16 +266,9 @@ function Forminput() {
         handleTypeChange={handleTypeChange}
         handleAddClick={handleAddClick}
       />
-      <Summary initialMoney={initialMoney} data={data} />
       <FormActions handleClearClick={handleClearClick} />
       <RecordDisplay data={data} onEdit={handleEditRecord} />
-      {editingRecord && (
-        <EditRecordModal
-          record={editingRecord}
-          onSave={handleAddClick}
-          onCancel={() => setEditingRecord(null)}
-        />
-      )}
+
     </div>
   );
 }

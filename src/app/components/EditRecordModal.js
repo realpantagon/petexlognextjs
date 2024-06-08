@@ -1,5 +1,5 @@
 // EditRecordModal.js
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,81 +7,105 @@ import {
   DialogActions,
   Button,
   TextField,
-  Select,
-  MenuItem,
 } from "@mui/material";
+import axios from "axios";
 
-function EditRecordModal({ record, data, setData, onSave, onCancel }) {
+function EditRecordModal({ open, onClose, record, onUpdate }) {
   const [editedRecord, setEditedRecord] = useState(record);
-
-  useEffect(() => {
-    setEditedRecord(record);
-  }, [record]);
 
   const handleChange = (field, value) => {
     setEditedRecord((prevRecord) => ({
       ...prevRecord,
-      [field]: value,
+      fields: {
+        ...prevRecord.fields,
+        [field]: value,
+      },
     }));
   };
 
-  const handleSave = () => {
-    const updatedRecord = {
-      ...editedRecord,
-      rate: parseFloat(editedRecord.rate),
-      amount: parseFloat(editedRecord.amount).toFixed(2),
-      total: (
-        parseFloat(editedRecord.rate) * parseFloat(editedRecord.amount)
-      ).toFixed(2),
-    };
-
-    const updatedData = data.map((record) =>
-      record.time === updatedRecord.time ? updatedRecord : record
-    );
-
-    onSave(updatedData);
-    onCancel();
+  const handleSave = async () => {
+    try {
+      // Calculate Total
+      const total = parseFloat(editedRecord.fields.Rate) * parseFloat(editedRecord.fields.Amount);
+      
+      const updatedFields = {
+        Currency: editedRecord.fields.Currency,
+        Rate: editedRecord.fields.Rate,
+        Amount: editedRecord.fields.Amount,
+        Type: editedRecord.fields.Type,
+        Total: total.toString(), // Convert total to string
+        Branch: editedRecord.fields.Branch,
+      };
+  
+      await axios.patch(
+        `https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Log%20Day/${editedRecord.id}`,
+        {
+          fields: updatedFields,
+        },
+        {
+          headers: {
+            Authorization:
+              "Bearer patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd779d5726b602d4febe8e383",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      onUpdate(editedRecord);
+      onClose();
+    } catch (error) {
+      console.error("Error updating record:", error);
+    }
   };
-  
-  
 
   return (
-    <Dialog open onClose={onCancel}>
+    <Dialog open={open} onClose={onClose}>
       <DialogTitle>Edit Record</DialogTitle>
       <DialogContent>
         <TextField
           label="Currency"
-          value={editedRecord.currency}
-          onChange={(e) => handleChange("currency", e.target.value)}
+          value={editedRecord.fields.Currency}
+          onChange={(e) => handleChange("Currency", e.target.value)}
           fullWidth
           margin="normal"
         />
         <TextField
           label="Rate"
-          value={editedRecord.rate}
-          onChange={(e) => handleChange("rate", e.target.value)}
+          value={editedRecord.fields.Rate}
+          onChange={(e) => handleChange("Rate", e.target.value)}
           fullWidth
           margin="normal"
         />
         <TextField
           label="Amount"
-          value={editedRecord.amount}
-          onChange={(e) => handleChange("amount", e.target.value)}
+          value={editedRecord.fields.Amount}
+          onChange={(e) => handleChange("Amount", e.target.value)}
           fullWidth
           margin="normal"
         />
-        <Select
-          value={editedRecord.type}
-          onChange={(e) => handleChange("type", e.target.value)}
+        {/* <TextField
+          label="Type"
+          value={editedRecord.fields.Type}
+          onChange={(e) => handleChange("Type", e.target.value)}
           fullWidth
           margin="normal"
-        >
-          <MenuItem value="Buying">Buying</MenuItem>
-          <MenuItem value="Selling">Selling</MenuItem>
-        </Select>
+        /> */}
+        <TextField
+          label="Total"
+          value={editedRecord.fields.Total}
+          onChange={(e) => handleChange("Total", e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        {/* <TextField
+          label="Branch"
+          value={editedRecord.fields.Branch}
+          onChange={(e) => handleChange("Branch", e.target.value)}
+          fullWidth
+          margin="normal"
+        /> */}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSave} color="primary">
           Save
         </Button>
