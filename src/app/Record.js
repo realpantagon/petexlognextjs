@@ -104,9 +104,9 @@ function Record({ data, onUpdate, onDelete }) {
                 <IconButton onClick={() => handleEditClick(item)} className="text-blue-600 hover:text-blue-800">
                   <EditIcon />
                 </IconButton>
-                <IconButton onClick={() => handleDeleteClick(item.id)} className="text-red-600 hover:text-red-800">
+                {/* <IconButton onClick={() => handleDeleteClick(item.id)} className="text-red-600 hover:text-red-800">
                   <DeleteForeverIcon />
-                </IconButton>
+                </IconButton> */}
               </TableCell>
             </TableRow>
           ))}

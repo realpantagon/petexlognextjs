@@ -173,7 +173,7 @@ function Forminput() {
             Rate: rate,
             Amount: formattedAmount,
             Type: type,
-            Total: formattedTotal,
+            Total1: formattedTotal,
             Branch: selectedBranch,
           },
         },
@@ -267,7 +267,7 @@ function Forminput() {
         handleAddClick={handleAddClick}
       />
       <FormActions handleClearClick={handleClearClick} />
-      <RecordDisplay data={data} onEdit={handleEditRecord} />
+      <RecordDisplay data={data} onEdit={handleEditRecord} selectedBranch={selectedBranch}/>
 
     </div>
   );

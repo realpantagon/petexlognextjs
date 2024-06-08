@@ -26,14 +26,14 @@ function EditRecordModal({ open, onClose, record, onUpdate }) {
   const handleSave = async () => {
     try {
       // Calculate Total
-      const total = parseFloat(editedRecord.fields.Rate) * parseFloat(editedRecord.fields.Amount);
+      const total1 = parseFloat(editedRecord.fields.Rate) * parseFloat(editedRecord.fields.Amount);
       
       const updatedFields = {
         Currency: editedRecord.fields.Currency,
         Rate: editedRecord.fields.Rate,
         Amount: editedRecord.fields.Amount,
         Type: editedRecord.fields.Type,
-        Total: total.toString(), // Convert total to string
+        Total1: total1.toString(), // Convert total to string
         Branch: editedRecord.fields.Branch,
       };
   
@@ -91,7 +91,7 @@ function EditRecordModal({ open, onClose, record, onUpdate }) {
         /> */}
         <TextField
           label="Total"
-          value={editedRecord.fields.Total}
+          value={editedRecord.fields.Total1}
           onChange={(e) => handleChange("Total", e.target.value)}
           fullWidth
           margin="normal"
