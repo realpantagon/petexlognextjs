@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import BranchSelect from "./components/BranchSelect";
@@ -85,7 +84,6 @@ function Forminput() {
         setData(JSON.parse(storedData));
       } catch (error) {
         console.error("Error parsing stored data:", error);
-        // Handle the error, e.g., clear the stored data
         localStorage.removeItem("formData");
       }
     }
@@ -164,7 +162,6 @@ function Forminput() {
       maximumFractionDigits: 2,
     }).format(total);
   
-    // Send data to Airtable
     const airtableData = {
       records: [
         {
@@ -182,7 +179,7 @@ function Forminput() {
   
     axios
       .post(
-        "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Log%20Day",
+        "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/PROMENADE",
         airtableData,
         {
           headers: {
@@ -242,10 +239,6 @@ function Forminput() {
   return (
     <div className="container mx-auto p-4">
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <BranchSelect
-          selectedBranch={selectedBranch}
-          handleBranchChange={handleBranchChange}
-        />
         <TextField
           label="เงินตั้งต้น"
           value={initialMoney}
@@ -267,7 +260,7 @@ function Forminput() {
         handleAddClick={handleAddClick}
       />
       <FormActions handleClearClick={handleClearClick} />
-      <RecordDisplay data={data} onEdit={handleEditRecord} selectedBranch={selectedBranch}/>
+      <RecordDisplay data={data} onEdit={handleEditRecord} />
 
     </div>
   );

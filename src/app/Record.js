@@ -12,7 +12,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import EditRecordModal from "./components/EditRecordModal";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
-import axios from "axios";
 
 function formatDateTime(dateTimeString) {
   const dateTime = new Date(dateTimeString);
@@ -56,21 +55,6 @@ function Record({ data, onUpdate, onDelete }) {
     setDeleteConfirmationOpen(false);
   };
 
-  const handleConfirmDelete = async (recordId) => {
-    try {
-      await axios.delete(`https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Log%20Day/${recordId}`, {
-        headers: {
-          Authorization:
-            "Bearer patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd779d5726b602d4febe8e383",
-          "Content-Type": "application/json",
-        },
-      });
-      onDelete(recordId);
-    } catch (error) {
-      console.error("Error deleting record:", error);
-    }
-  };
-
   return (
     <>
       <Table className="min-w-full divide-y divide-gray-200">
@@ -104,9 +88,9 @@ function Record({ data, onUpdate, onDelete }) {
                 <IconButton onClick={() => handleEditClick(item)} className="text-blue-600 hover:text-blue-800">
                   <EditIcon />
                 </IconButton>
-                {/* <IconButton onClick={() => handleDeleteClick(item.id)} className="text-red-600 hover:text-red-800">
+                <IconButton onClick={() => handleDeleteClick(item)} className="text-red-600 hover:text-red-800">
                   <DeleteForeverIcon />
-                </IconButton> */}
+                </IconButton>
               </TableCell>
             </TableRow>
           ))}
@@ -125,7 +109,7 @@ function Record({ data, onUpdate, onDelete }) {
           open={deleteConfirmationOpen}
           onClose={handleCloseDeleteConfirmation}
           record={selectedRecord}
-          onConfirmDelete={handleConfirmDelete}
+          onDelete={onDelete}
         />
       )}
     </>

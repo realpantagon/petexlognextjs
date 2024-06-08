@@ -3,14 +3,14 @@ import axios from "axios";
 import Record from "/src/app/Record";
 import Summary from "./Summary";
 
-function RecordDisplay({ selectedBranch }) {
+function RecordDisplay() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Log%20Day?maxRecords=10&view=${selectedBranch}`,
+          `https://api.airtable.com/v0/appXvdgNSlqDP9QwS/PROMENADE?view=Gridview`,
           {
             headers: {
               Authorization:
@@ -19,7 +19,6 @@ function RecordDisplay({ selectedBranch }) {
           }
         );
 
-        // Sort data by created time, newest first
         const sortedData = response.data.records.sort(
           (a, b) => new Date(b.createdTime) - new Date(a.createdTime)
         );
@@ -29,11 +28,11 @@ function RecordDisplay({ selectedBranch }) {
       }
     };
 
-    fetchData(); // Fetch data when the component mounts
-    const interval = setInterval(fetchData, 1000); // Fetch data every 1 second
+    fetchData(); 
+    const interval = setInterval(fetchData, 1000); 
 
-    return () => clearInterval(interval); // Cleanup interval on unmount
-  }, [selectedBranch]); // Dependency on selectedBranch
+    return () => clearInterval(interval); 
+  }); 
 
   const handleUpdate = (updatedRecord) => {
     setData((prevData) =>
@@ -49,21 +48,10 @@ function RecordDisplay({ selectedBranch }) {
     );
   };
 
-// Calculate the sum of the "Total" field
-const totalSum = data
-  .filter(record => record.fields && record.fields.Branch === selectedBranch) // Filter records by selected branch
-  .reduce((sum, record) => {
-    if (record.fields && record.fields.Total) {
-      const total = parseFloat(record.fields.Total1.replace(/,/g, ""));
-      return sum + total;
-    }
-    return sum;
-  }, 0);
 
   return (
     <div>
       <Record data={data} onUpdate={handleUpdate} onDelete={handleDelete} />
-      {/* <Summary totalSum={totalSum} /> */}
     </div>
   );
 }

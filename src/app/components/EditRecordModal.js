@@ -25,7 +25,6 @@ function EditRecordModal({ open, onClose, record, onUpdate }) {
 
   const handleSave = async () => {
     try {
-      // Calculate Total
       const total1 = parseFloat(editedRecord.fields.Rate) * parseFloat(editedRecord.fields.Amount);
       
       const updatedFields = {
@@ -33,14 +32,19 @@ function EditRecordModal({ open, onClose, record, onUpdate }) {
         Rate: editedRecord.fields.Rate,
         Amount: editedRecord.fields.Amount,
         Type: editedRecord.fields.Type,
-        Total1: total1.toString(), // Convert total to string
+        Total1: total1.toString(),
         Branch: editedRecord.fields.Branch,
       };
   
       await axios.patch(
-        `https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Log%20Day/${editedRecord.id}`,
+        `https://api.airtable.com/v0/appXvdgNSlqDP9QwS/PROMENADE`,
         {
-          fields: updatedFields,
+          records: [
+            {
+              id: editedRecord.id,
+              fields: updatedFields,
+            },
+          ],
         },
         {
           headers: {
