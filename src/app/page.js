@@ -1,16 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import BranchSelect from "./components/BranchSelect";
 import CurrencyForm from "./components/CurrencyForm";
 import RecordDisplay from "./components/RecordDisplay";
-import Summary from "./components/Summary";
 import FormActions from "./components/ClearRecordsButton";
 import { TextField } from "@mui/material";
 import EditRecordModal from "./components/EditRecordModal";
 
 function Forminput() {
-  const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [rate, setRate] = useState("");
   const [amount, setAmount] = useState("");
@@ -78,21 +75,6 @@ function Forminput() {
   };
 
   useEffect(() => {
-    const storedData = localStorage.getItem("formData");
-    if (storedData) {
-      try {
-        setData(JSON.parse(storedData));
-      } catch (error) {
-        console.error("Error parsing stored data:", error);
-        localStorage.removeItem("formData");
-      }
-    }
-
-    const storedBranch = localStorage.getItem("selectedBranch");
-    if (storedBranch) {
-      setSelectedBranch(storedBranch);
-    }
-
     const storedInitialMoney = localStorage.getItem("initialMoney");
     if (storedInitialMoney) {
       setInitialMoney(storedInitialMoney);
@@ -109,12 +91,6 @@ function Forminput() {
       clearInterval(interval);
     };
   }, []);
-
-  const handleBranchChange = (event) => {
-    const selectedBranch = event.target.value;
-    setSelectedBranch(selectedBranch);
-    localStorage.setItem("selectedBranch", selectedBranch);
-  };
 
   const handleOptionChange = (event) => {
     const selectedCurrency = event.target.value;
@@ -171,7 +147,6 @@ function Forminput() {
             Amount: formattedAmount,
             Type: type,
             Total1: formattedTotal,
-            Branch: selectedBranch,
           },
         },
       ],
@@ -200,22 +175,7 @@ function Forminput() {
     setRate("");
     setAmount("");
 
-    const totalBought = data.reduce(
-      (acc, item) => acc + parseFloat(item.total.replace(",", "")),
-      0
-    );
-    const remainingMoney = parseFloat(initialMoney) - totalBought;
-
-    const message = `${selectedBranch}\n ${selectedOption} ${type}\n ${rate} x ${amount} \n ${formattedTotal} baht\n ซื้อแล้ว: ${new Intl.NumberFormat(
-      "en-US",
-      {
-        style: "currency",
-        currency: "THB",
-      }
-    ).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-    }).format(remainingMoney)}`;
+    const message = `${selectedOption} ${type}\n ${rate} x ${amount} \n ${formattedTotal} baht`;
 
     console.log(message);
     sendLineNotification(message)
@@ -227,14 +187,6 @@ function Forminput() {
 
   const sendLineNotification = async (message) => {
     await axios.post("/api", { message });
-  };
-
-  const handleClearClick = () => {
-    if (window.confirm("Are you sure you want to delete all data?")) {
-      setData([]);
-      setInitialMoney("");
-      localStorage.removeItem("initialMoney");
-    }
   };
 
   return (
@@ -260,7 +212,7 @@ function Forminput() {
         handleAddClick={handleAddClick}
       />
       <RecordDisplay data={data} onEdit={handleEditRecord} />
-      <FormActions /> 
+      <FormActions />
     </div>
   );
 }

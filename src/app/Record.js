@@ -66,7 +66,6 @@ function Record({ data, onUpdate, onDelete }) {
             <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</TableCell>
             <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</TableCell>
             <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</TableCell>
-            <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</TableCell>
             <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -83,7 +82,6 @@ function Record({ data, onUpdate, onDelete }) {
                 {item.fields.Type}
               </TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">{formatTotal(item.fields.Total)}</TableCell>
-              <TableCell className="px-6 py-4 whitespace-nowrap">{item.fields.Branch}</TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">
                 <IconButton onClick={() => handleEditClick(item)} className="text-blue-600 hover:text-blue-800">
                   <EditIcon />
