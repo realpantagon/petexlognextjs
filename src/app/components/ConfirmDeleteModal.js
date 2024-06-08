@@ -37,7 +37,6 @@ function ConfirmDeleteModal({ open, onClose, record, onDelete }) {
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Confirm Delete</DialogTitle>
       <DialogContent>
-        <Typography>Are you sure you want to delete this record?</Typography>
         {record && record.fields && (
           <>
             <Typography>Currency: {record.fields.Currency}</Typography>
@@ -45,7 +44,6 @@ function ConfirmDeleteModal({ open, onClose, record, onDelete }) {
             <Typography>Amount: {record.fields.Amount}</Typography>
             <Typography>Type: {record.fields.Type}</Typography>
             <Typography>Total: {record.fields.Total1}</Typography>
-            <Typography>Branch: {record.fields.Branch}</Typography>
           </>
         )}
       </DialogContent>

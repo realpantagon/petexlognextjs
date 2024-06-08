@@ -1,9 +1,10 @@
+// RecordDisplay.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Record from "/src/app/Record";
+import Record from "../Record";
 import Summary from "./Summary";
 
-function RecordDisplay() {
+function RecordDisplay({ onEdit }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -28,11 +29,20 @@ function RecordDisplay() {
       }
     };
 
-    fetchData(); 
-    const interval = setInterval(fetchData, 1000); 
+    fetchData();
+    const interval = setInterval(fetchData, 1000);
 
-    return () => clearInterval(interval); 
-  }); 
+    return () => clearInterval(interval);
+  }, []);
+
+  const calculateSummary = () => {
+    const totalAmount = data.reduce((sum, record) => {
+      const total = parseFloat(record.fields.Total1.replace(/,/g, ''));
+      return isNaN(total) ? sum : sum + total;
+    }, 0);
+    
+    return totalAmount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
 
   const handleUpdate = (updatedRecord) => {
     setData((prevData) =>
@@ -48,10 +58,10 @@ function RecordDisplay() {
     );
   };
 
-
   return (
     <div>
       <Record data={data} onUpdate={handleUpdate} onDelete={handleDelete} />
+      <Summary totalAmount={calculateSummary()} />
     </div>
   );
 }

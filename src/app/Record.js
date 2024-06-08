@@ -81,7 +81,7 @@ function Record({ data, onUpdate, onDelete }) {
               >
                 {item.fields.Type}
               </TableCell>
-              <TableCell className="px-6 py-4 whitespace-nowrap">{formatTotal(item.fields.Total)}</TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap">{item.fields.Total1}</TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">
                 <IconButton onClick={() => handleEditClick(item)} className="text-blue-600 hover:text-blue-800">
                   <EditIcon />
