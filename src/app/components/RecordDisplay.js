@@ -4,7 +4,7 @@ import axios from "axios";
 import Record from "../Record";
 import Summary from "./Summary";
 
-function RecordDisplay({ onEdit }) {
+function RecordDisplay({ onEdit, initialMoney }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -60,8 +60,8 @@ function RecordDisplay({ onEdit }) {
 
   return (
     <div>
+      <Summary totalAmount={calculateSummary()} initialMoney={initialMoney} />
       <Record data={data} onUpdate={handleUpdate} onDelete={handleDelete} />
-      <Summary totalAmount={calculateSummary()} />
     </div>
   );
 }

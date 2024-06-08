@@ -191,14 +191,16 @@ function Forminput() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <TextField
-          label="เงินตั้งต้น"
-          value={initialMoney}
-          onChange={handleInitialMoneyChange}
-          className="w-full"
-        />
-      </div>
+<div className="grid grid-cols-2 gap-4 mb-4">
+  <p className="text-gray-700 font-bold text-5xl">NIMMAN PROMENADE</p>
+  <TextField
+    label="เงินตั้งต้น"
+    value={initialMoney}
+    onChange={handleInitialMoneyChange}
+    className="w-full"
+  />
+</div>
+
       <CurrencyForm
         selectedOption={selectedOption}
         handleOptionChange={handleOptionChange}
@@ -211,8 +213,8 @@ function Forminput() {
         handleTypeChange={handleTypeChange}
         handleAddClick={handleAddClick}
       />
-      <RecordDisplay data={data} onEdit={handleEditRecord} />
-      <FormActions />
+    <RecordDisplay data={data} onEdit={handleEditRecord} initialMoney={initialMoney} />
+    <FormActions />
     </div>
   );
 }
