@@ -1,45 +1,15 @@
-"use client";
-
+// Summary.js
 import React from "react";
 
-function Summary({ initialMoney, data }) {
-  const totalBought = data.reduce(
-    (acc, item) => acc + parseFloat(item.total.replace(",", "")),
-    0
-  );
-  const remainingMoney = parseFloat(initialMoney) - totalBought;
+function Summary({ totalAmount, initialMoney }) {
+  const formattedTotalAmount = Number(totalAmount.replace(/,/g, '')).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const remain = (initialMoney - parseFloat(totalAmount.replace(/,/g, ''))).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
   return (
-    <div className="bg-gray-100 rounded-lg p-6 shadow-md">
-      <div className="grid grid-cols-3 gap-8 mb-4">
-        <div>
-          <p className="text-gray-600 font-semibold mb-2">เงินตั้งต้นวัน :</p>
-          <p className="text-lg font-bold text-green-600">
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "THB",
-            }).format(parseFloat(initialMoney))}
-          </p>
-        </div>
-        <div>
-          <p className="text-gray-600 font-semibold mb-2">ซื้อแล้ว :</p>
-          <p className="text-lg font-bold text-red-600">
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "THB",
-            }).format(totalBought)}
-          </p>
-        </div>
-        <div>
-          <p className="text-gray-600 font-semibold mb-2">เหลือเงิน :</p>
-          <p className="text-lg font-bold text-blue-600">
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "THB",
-            }).format(remainingMoney)}
-          </p>
-        </div>
-      </div>
+    <div className="m-4 p-4 bg-sky-200 shadow rounded-lg grid grid-cols-3 gap-4 items-center">
+      <h2 className="text-xl font-bold text-gray-800 col-span-1">Summary</h2>
+      <p className="text-lg text-gray-600 col-span-1">จ่ายไป: <span className="text-blue-600">{formattedTotalAmount}</span></p>
+      <p className="text-lg text-gray-600 col-span-1">คงเหลือ: <span className={`text-${remain < 0 ? 'red' : 'green'}-600`}>{remain}</span></p>
     </div>
   );
 }

@@ -1,15 +1,11 @@
+// FormActions.js
 import React from 'react';
-import { Button } from '@mui/material';
+import ClearRecordsButton from './ClearRecordsButton';
 
-const FormActions = ({ handleClearClick, exportToGoogleSheet }) => {
+const FormActions = () => {
   return (
     <div>
-      <Button
-        onClick={handleClearClick}
-        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
-      >
-        DELETE
-      </Button>
+      <ClearRecordsButton />
     </div>
   );
 };

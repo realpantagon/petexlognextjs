@@ -1,17 +1,13 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import BranchSelect from "./components/BranchSelect";
 import CurrencyForm from "./components/CurrencyForm";
 import RecordDisplay from "./components/RecordDisplay";
-import Summary from "./components/Summary";
-import FormActions from "./components/FormActions";
+import FormActions from "./components/ClearRecordsButton";
 import { TextField } from "@mui/material";
 import EditRecordModal from "./components/EditRecordModal";
 
 function Forminput() {
-  const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedOption, setSelectedOption] = useState("");
   const [rate, setRate] = useState("");
   const [amount, setAmount] = useState("");
@@ -79,22 +75,6 @@ function Forminput() {
   };
 
   useEffect(() => {
-    const storedData = localStorage.getItem("formData");
-    if (storedData) {
-      try {
-        setData(JSON.parse(storedData));
-      } catch (error) {
-        console.error("Error parsing stored data:", error);
-        // Handle the error, e.g., clear the stored data
-        localStorage.removeItem("formData");
-      }
-    }
-
-    const storedBranch = localStorage.getItem("selectedBranch");
-    if (storedBranch) {
-      setSelectedBranch(storedBranch);
-    }
-
     const storedInitialMoney = localStorage.getItem("initialMoney");
     if (storedInitialMoney) {
       setInitialMoney(storedInitialMoney);
@@ -111,12 +91,6 @@ function Forminput() {
       clearInterval(interval);
     };
   }, []);
-
-  const handleBranchChange = (event) => {
-    const selectedBranch = event.target.value;
-    setSelectedBranch(selectedBranch);
-    localStorage.setItem("selectedBranch", selectedBranch);
-  };
 
   const handleOptionChange = (event) => {
     const selectedCurrency = event.target.value;
@@ -154,64 +128,55 @@ function Forminput() {
   };
 
   const handleAddClick = () => {
-    let updatedData;
-    let timestamp;
-    
-    if (editingRecord) {
-      // Update the existing record
-      updatedData = data.map((record) =>
-        record.time === editingRecord.time ? { ...editingRecord } : record
-      );
-      setData(updatedData);
-      setEditingRecord(null);
-    } else {
-      // Add a new record
-      timestamp = new Date().toLocaleString("en-US", { hour12: false });
-      const formattedAmount = new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(parseFloat(amount));
-      const total = type === "Buying" ? rate * amount : -(rate * amount);
-      const formattedTotal = new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(total);
-      const newData = {
-        time: timestamp,
-        branch: selectedBranch,
-        currency: selectedOption,
-        rate,
-        amount: formattedAmount,
-        type,
-        total: formattedTotal,
-      };
-      updatedData = [...data, newData];
-      setData(updatedData);
-    }
-  
+    const formattedAmount = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(parseFloat(amount));
+    const total = type === "Buying" ? rate * amount : -(rate * amount);
+    const formattedTotal = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(total);
+
+    const airtableData = {
+      records: [
+        {
+          fields: {
+            Currency: selectedOption,
+            Rate: rate,
+            Amount: formattedAmount,
+            Type: type,
+            Total1: formattedTotal,
+          },
+        },
+      ],
+    };
+
+    axios
+      .post(
+        "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/PROMENADE",
+        airtableData,
+        {
+          headers: {
+            Authorization:
+              "Bearer patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd779d5726b602d4febe8e383",
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Data sent to Airtable successfully");
+      })
+      .catch((error) => {
+        console.error("Error sending data to Airtable:", error);
+      });
+
     setSelectedOption("");
     setRate("");
     setAmount("");
-  
-    localStorage.setItem("formData", JSON.stringify(updatedData));
-  
-    const totalBought = updatedData.reduce(
-      (acc, item) => acc + parseFloat(item.total.replace(",", "")),
-      0
-    );
-    const remainingMoney = parseFloat(initialMoney) - totalBought;
-  
-    const message = `${selectedBranch}\n ${selectedOption} ${type}\n ${rate} x ${amount} \n ${updatedData[updatedData.length - 1].total} baht\n ซื้อแล้ว: ${new Intl.NumberFormat(
-      "en-US",
-      {
-        style: "currency",
-        currency: "THB",
-      }
-    ).format(totalBought)}\n เหลือเงิน: ${new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "THB",
-    }).format(remainingMoney)}`;
-  
+
+    const message = `${selectedOption} ${type}\n ${rate} x ${amount} \n ${formattedTotal} baht`;
+
     console.log(message);
     sendLineNotification(message)
       .then(() => console.log("Line notification sent successfully"))
@@ -219,36 +184,22 @@ function Forminput() {
         console.error("Error sending Line notification:", error)
       );
   };
-  
 
   const sendLineNotification = async (message) => {
     await axios.post("/api", { message });
   };
 
-  const handleClearClick = () => {
-    if (window.confirm("Are you sure you want to delete all data?")) {
-      setData([]);
-      setInitialMoney("");
-      localStorage.removeItem("formData");
-      localStorage.removeItem("selectedBranch");
-      localStorage.removeItem("initialMoney");
-    }
-  };
-
   return (
     <div className="container mx-auto p-4">
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <BranchSelect
-          selectedBranch={selectedBranch}
-          handleBranchChange={handleBranchChange}
-        />
-        <TextField
-          label="เงินตั้งต้น"
-          value={initialMoney}
-          onChange={handleInitialMoneyChange}
-          className="w-full"
-        />
-      </div>
+<div className="grid grid-cols-2 gap-4 mb-4">
+  <p className="text-gray-700 font-bold text-5xl">NIMMAN PROMENADE</p>
+  <TextField
+    label="เงินตั้งต้น"
+    value={initialMoney}
+    onChange={handleInitialMoneyChange}
+    className="w-full"
+  />
+</div>
 
       <CurrencyForm
         selectedOption={selectedOption}
@@ -262,16 +213,8 @@ function Forminput() {
         handleTypeChange={handleTypeChange}
         handleAddClick={handleAddClick}
       />
-      <Summary initialMoney={initialMoney} data={data} />
-      <FormActions handleClearClick={handleClearClick} />
-      <RecordDisplay data={data} onEdit={handleEditRecord} />
-      {editingRecord && (
-        <EditRecordModal
-          record={editingRecord}
-          onSave={handleAddClick}
-          onCancel={() => setEditingRecord(null)}
-        />
-      )}
+    <RecordDisplay data={data} onEdit={handleEditRecord} initialMoney={initialMoney} />
+    <FormActions />
     </div>
   );
 }
