@@ -175,7 +175,7 @@ function Forminput() {
     setRate("");
     setAmount("");
 
-    const message = `${selectedOption} ${type}\n ${rate} x ${amount} \n ${formattedTotal} baht`;
+    const message = `\n${type} ${selectedOption}\n Rate: ${rate} \n Amount: ${amount} \n ${formattedTotal} baht`;
 
     console.log(message);
     sendLineNotification(message)
