@@ -20,7 +20,7 @@ export const saveRate = async (rate, rateInput, amount, transactionType, calcula
             Rate: rateInput,
             Amount: amountWithoutCommas, // Send the raw number without commas
             Type: transactionType,
-            Total1: calculatedValue,
+            Total1: parseFloat(calculatedValue.replace(/,/g, '')), // Ensure Total1 is sent as a number
           },
         },
       ],
@@ -34,9 +34,9 @@ export const saveRate = async (rate, rateInput, amount, transactionType, calcula
     });
 
     console.log('Data saved to Airtable:', response.data);
-    alert('Data saved successfully!');
+    // alert('Data saved successfully!');
   } catch (error) {
     console.error('Error saving data:', error);
-    alert('Error saving data');
+    // alert('Error saving data');
   }
 };

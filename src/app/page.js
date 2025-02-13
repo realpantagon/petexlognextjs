@@ -28,7 +28,7 @@ const MainPage = () => {
   return (
     <div className="container flex">
       <div className="w-4/12 p-4 bg-stone-100">
-        <RateTable onRowClick={handleRowClick} /> {/* Pass the click handler to RateTable */}
+        <RateTable onRowClick={handleRowClick} />
       </div>
       <div className="w-8/12 p-4">
         <MainContent refreshTrigger={refreshTrigger} /> {/* Pass refreshTrigger to MainContent */}

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchRates } from "../api/GetRate";
 import { Rate } from "../models/Rate";
+import Spinner from './Spinner'; // Import Spinner component
 
 const RateTable = ({ onRowClick }) => {
   const [rates, setRates] = useState([]);
@@ -91,9 +92,7 @@ const RateTable = ({ onRowClick }) => {
 
         {/* Loading Spinner */}
         {isLoading ? (
-          <div className="flex justify-center items-center">
-            <div className="spinner-border animate-spin border-t-4 border-blue-500 rounded-full w-8 h-8"></div>
-          </div>
+          <Spinner /> // Show Spinner when loading
         ) : (
           <table className="min-w-full table-auto text-sm">
             <thead>

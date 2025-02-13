@@ -7,6 +7,7 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
 
   const [rateInput, setRateInput] = useState(rate.rate); // State for rate input
   const [amount, setAmount] = useState(""); // State for amount input
+  const [amountError, setAmountError] = useState(false); // State for amount error
   const [transactionType, setTransactionType] = useState("Buying"); // State for transaction type (Buying/Selling)
   const [calculatedValue, setCalculatedValue] = useState(""); // State for calculated value
 
@@ -28,14 +29,15 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
     // Remove any non-numeric characters except for commas
     formattedAmount = formattedAmount.replace(/\D/g, '');
 
-    // Prevent empty or negative values
-    if (formattedAmount === "" || parseFloat(formattedAmount) < 0) {
-      return; // Do not update the state if the value is empty or negative
+    // Prevent negative values
+    if (parseFloat(formattedAmount) < 0) {
+      return; // Do not update the state if the value is negative
     }
 
     // Format amount with commas
     formattedAmount = formatNumber(formattedAmount);
     setAmount(formattedAmount);
+    setAmountError(formattedAmount === ""); // Set error if amount is empty
   };
 
   // Handle changes for transaction type
@@ -46,7 +48,7 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
   // Calculate the value for the new text input (rate * amount)
   useEffect(() => {
     if (rateInput && amount) {
-      const calculated = parseFloat(rateInput.replace(/,/g, '')) * parseFloat(amount.replace(/,/g, ''));
+      const calculated = Math.floor(parseFloat(rateInput.replace(/,/g, '')) * parseFloat(amount.replace(/,/g, '')));
       setCalculatedValue(calculated.toLocaleString()); // Format with commas
     }
   }, [rateInput, amount]);
@@ -60,7 +62,12 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
 
   // Function to handle saving data to Airtable using the controller
   const handleSave = async () => {
-    await saveRate(rate, rateInput, amount, transactionType, calculatedValue); // Call the saveRate function
+    if (amount === "") {
+      setAmountError(true); // Set error if amount is empty
+      return;
+    }
+    const flooredValue = Math.floor(parseFloat(calculatedValue.replace(/,/g, '')));
+    await saveRate(rate, rateInput, amount, transactionType, flooredValue.toLocaleString()); // Call the saveRate function
     onSave(); // Trigger the save refresh in the parent
     onClose(); // Close the modal after saving
   };
@@ -121,9 +128,10 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
             id="amount"
             value={amount}
             onChange={handleAmountChange}
-            className="border border-gray-300 rounded-lg px-4 py-2 w-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`border border-gray-300 rounded-lg px-4 py-2 w-full text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${amountError ? 'border-red-500' : ''}`}
             placeholder="Enter amount"
           />
+          {amountError && <p className="text-red-500 text-sm mt-1">*fill amount*</p>}
         </div>
 
         {/* Calculated value input field */}
