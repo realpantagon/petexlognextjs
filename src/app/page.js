@@ -1,222 +1,47 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import CurrencyForm from "./components/CurrencyForm";
-import RecordDisplay from "./components/RecordDisplay";
-import FormActions from "./components/ClearRecordsButton";
-import { TextField } from "@mui/material";
-import EditRecordModal from "./components/EditRecordModal";
+import React, { useState } from "react";
+import RateTable from "../app/components/RateTable";
+import Modal from "../app/components/modal";
+import MainContent from "../app/components/RecordContent"; // Import the MainContent component
 
-function Forminput() {
-  const [selectedOption, setSelectedOption] = useState("");
-  const [rate, setRate] = useState("");
-  const [amount, setAmount] = useState("");
-  const [type, setType] = useState("Buying");
-  const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [currencies, setCurrencies] = useState([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [initialMoney, setInitialMoney] = useState("");
-  const [editingRecord, setEditingRecord] = useState(null);
+const MainPage = () => {
+  const [selectedRate, setSelectedRate] = useState(null); // State to store the selected rate
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control the modal visibility
 
-  const fetchCurrenciesData = async () => {
-    setIsLoading(true);
-    setError(null);
+  // Function to refresh data in MainContent
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
 
-    try {
-      const response = await axios.get(
-        "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/Table%201",
-        {
-          headers: {
-            Authorization:
-              "Bearer patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd779d5726b602d4febe8e383",
-          },
-        }
-      );
-
-      const currencyData = response.data.records.map((record) => ({
-        label: record.fields.Currency,
-        rate: record.fields.Rate,
-      }));
-
-      const desiredOrder = [
-        "US Dollar $50-100",
-        "US Dollar $5-20",
-        "US Dollar $1",
-        "Euro",
-        "Japanese Yen",
-        "British Pound",
-        "Singapore Dollar",
-        "Australian Dollar",
-        "Swiss Franc",
-        "Hong Kong Dollar",
-        "Canadian Dollar",
-        "New Zealand Dollar",
-        "Swedish Krona",
-        "Taiwan Dollar",
-        "Norwegian Krone",
-        "Malaysian Ringgit",
-        "Chinese Yuan Renminbi",
-        "South Korean Won",
-      ];
-
-      const sortedCurrencyData = currencyData.sort(
-        (a, b) => desiredOrder.indexOf(a.label) - desiredOrder.indexOf(b.label)
-      );
-
-      setCurrencies(sortedCurrencyData);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
+  const handleRowClick = (rate) => {
+    setSelectedRate(rate); // Set the selected rate
+    setIsModalOpen(true); // Open the modal
   };
 
-  useEffect(() => {
-    const storedInitialMoney = localStorage.getItem("initialMoney");
-    if (storedInitialMoney) {
-      setInitialMoney(storedInitialMoney);
-    }
-
-    fetchCurrenciesData();
-
-    const interval = setInterval(() => {
-      setIsRefreshing(true);
-      fetchCurrenciesData();
-    }, 60000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
-  const handleOptionChange = (event) => {
-    const selectedCurrency = event.target.value;
-    const currencyInfo = currencies.find(
-      (currency) => currency.label === selectedCurrency
-    );
-    setSelectedOption(selectedCurrency);
-    if (currencyInfo) {
-      setRate(currencyInfo.rate);
-    } else {
-      setRate("");
-    }
+  const handleCloseModal = () => {
+    setIsModalOpen(false); // Close the modal
   };
 
-  const handleInput1Change = (event) => {
-    setRate(event.target.value);
-  };
-
-  const handleInput2Change = (event) => {
-    setAmount(event.target.value);
-  };
-
-  const handleTypeChange = (event) => {
-    setType(event.target.value);
-  };
-
-  const handleInitialMoneyChange = (event) => {
-    const value = event.target.value;
-    setInitialMoney(value);
-    localStorage.setItem("initialMoney", value);
-  };
-
-  const handleEditRecord = (record) => {
-    setEditingRecord(record);
-  };
-
-  const handleAddClick = () => {
-    const formattedAmount = new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(parseFloat(amount));
-    const total = type === "Buying" ? rate * amount : -(rate * amount);
-    const formattedTotal = new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(total);
-
-    const airtableData = {
-      records: [
-        {
-          fields: {
-            Currency: selectedOption,
-            Rate: rate,
-            Amount: formattedAmount,
-            Type: type,
-            Total1: formattedTotal,
-          },
-        },
-      ],
-    };
-
-    axios
-      .post(
-        "https://api.airtable.com/v0/appXvdgNSlqDP9QwS/PROMENADE",
-        airtableData,
-        {
-          headers: {
-            Authorization:
-              "Bearer patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd779d5726b602d4febe8e383",
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then((response) => {
-        console.log("Data sent to Airtable successfully");
-      })
-      .catch((error) => {
-        console.error("Error sending data to Airtable:", error);
-      });
-
-    setSelectedOption("");
-    setRate("");
-    setAmount("");
-
-    const message = `${selectedOption} ${type}\n ${rate} x ${amount} \n ${formattedTotal} baht`;
-
-    console.log(message);
-    sendLineNotification(message)
-      .then(() => console.log("Line notification sent successfully"))
-      .catch((error) =>
-        console.error("Error sending Line notification:", error)
-      );
-  };
-
-  const sendLineNotification = async (message) => {
-    await axios.post("/api", { message });
+  const handleSave = () => {
+    setRefreshTrigger(prev => !prev); // Trigger data refresh
+    setIsModalOpen(false); // Close modal after save
   };
 
   return (
-    <div className="container mx-auto p-4">
-<div className="grid grid-cols-2 gap-4 mb-4">
-  <p className="text-gray-700 font-bold text-5xl">NIMMAN PROMENADE</p>
-  <TextField
-    label="เงินตั้งต้น"
-    value={initialMoney}
-    onChange={handleInitialMoneyChange}
-    className="w-full"
-  />
-</div>
+    <div className="container flex">
+      <div className="w-4/12 p-4 bg-stone-100">
+        <RateTable onRowClick={handleRowClick} /> {/* Pass the click handler to RateTable */}
+      </div>
+      <div className="w-8/12 p-4">
+        <MainContent refreshTrigger={refreshTrigger} /> {/* Pass refreshTrigger to MainContent */}
+      </div>
 
-      <CurrencyForm
-        selectedOption={selectedOption}
-        handleOptionChange={handleOptionChange}
-        currencies={currencies}
-        rate={rate}
-        amount={amount}
-        handleInput1Change={handleInput1Change}
-        handleInput2Change={handleInput2Change}
-        type={type}
-        handleTypeChange={handleTypeChange}
-        handleAddClick={handleAddClick}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        rate={selectedRate} // Pass the selected rate to the modal
+        onSave={handleSave} // Pass the handleSave function to Modal
       />
-    <RecordDisplay data={data} onEdit={handleEditRecord} initialMoney={initialMoney} />
-    <FormActions />
     </div>
   );
-}
+};
 
-export default Forminput;
+export default MainPage;
