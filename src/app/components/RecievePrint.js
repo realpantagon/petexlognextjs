@@ -1,9 +1,9 @@
 const RecievePrint = (items, formatDate) => {
   // Format number with commas and optionally 2 decimal places
   const formatMoney = (amount, withDecimals = true) => {
-    return new Intl.NumberFormat('en-US', { 
-      minimumFractionDigits: withDecimals ? 2 : 0, 
-      maximumFractionDigits: withDecimals ? 2 : 0 
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: withDecimals ? 2 : 0,
+      maximumFractionDigits: withDecimals ? 2 : 0,
     }).format(amount);
   };
 
@@ -14,10 +14,14 @@ const RecievePrint = (items, formatDate) => {
 
   return `
     <div style="width: 5.5cm; font-size: 12px; text-align: center; font-family: Arial, sans-serif;">
-      <img src="/PeterXReceipt.png" alt="Peter Exchange Logo" style="width: 150px; height: auto;" />
-      <p style="font-size: 12px; font-weight: bold;">Peter Exchange Limited Partnership</p>
-      <p style="font-size: 10px;">8 Nimmanhaemin Rd., Suthep, Mueang Chiang Mai, Chiang Mai</p>
-      <p style="font-size: 10px;"><strong>Tel:</strong> 081-951-9678</p>
+    
+    <img src="/PeterXReceipt.png" alt="Peter Exchange Logo" style="width: 150px; height: auto; margin-bottom: 2px;" />
+    <p style="font-size: 10px; margin: 2px 0;">8 Nimmanhaemin Rd., Suthep, Mueang Chiang Mai, Chiang Mai</p>
+    <p style="font-size: 10px; margin: 2px 0;"><strong>Tel:</strong> 081-951-9678</p>
+    <p style="font-size: 10px; margin: 2px 0;">Date: ${
+      formatDate ? formatDate(new Date()) : "N/A"
+    }</p>
+
       <table style="width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px;">
         <thead>
           <tr style="border-bottom: 1px solid #000; height: 20px;">
@@ -32,10 +36,19 @@ const RecievePrint = (items, formatDate) => {
             .map(
               (item) => `
             <tr>
-              <td style="text-align: center; padding: 8px 0;">${item.fields.Currency}</td>
-              <td style="text-align: center; padding: 8px 0;">${item.fields.Rate}</td>
-              <td style="text-align: center; padding: 8px 0;">${formatMoney(item.fields.Amount, false)}</td>
-              <td style="text-align: center; padding: 8px 0;">${formatMoney(item.fields.Total1)}</td>
+              <td style="text-align: center; padding: 8px 0;">${
+                item.fields.Currency
+              }</td>
+              <td style="text-align: center; padding: 8px 0;">${
+                item.fields.Rate
+              }</td>
+              <td style="text-align: center; padding: 8px 0;">${formatMoney(
+                item.fields.Amount,
+                false
+              )}</td>
+              <td style="text-align: center; padding: 8px 0;">${formatMoney(
+                item.fields.Total1
+              )}</td>
             </tr>
           `
             )
@@ -43,18 +56,16 @@ const RecievePrint = (items, formatDate) => {
         </tbody>
       </table>
 
+      <hr style="border-top: 1px solid #000; margin: 5px 0;" />
+
       <div style="display: flex; justify-content: space-between; width: 100%; font-size: 12px; margin: 5px 0;">
         <p style="margin: 0;"><strong>Total:</strong></p>
-        <p style="text-align: right; margin: 0;">${formatMoney(totalAmount)} THB</p>
+        <p style="text-align: right; margin: 0;">${formatMoney(
+          totalAmount
+        )} THB</p>
       </div>
 
-      <p style="font-size: 10px; margin-top: 5px;">Date: ${
-        formatDate ? formatDate(new Date()) : "N/A"
-      }</p>
-
-      <p style="border-top: 1px solid #000; padding-top: 5px; margin-top: 5px;">
-        Thank you for your business!
-      </p>
+      <p style="border-top: 1px solid #000; padding-top: 5px; margin-top: 5px;"></p>
     </div>
   `;
 };
