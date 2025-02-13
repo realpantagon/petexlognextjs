@@ -67,7 +67,8 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
       return;
     }
     const flooredValue = Math.floor(parseFloat(calculatedValue.replace(/,/g, '')));
-    await saveRate(rate, rateInput, amount, transactionType, flooredValue.toLocaleString()); // Call the saveRate function
+    const amountNumber = parseFloat(amount.replace(/,/g, '')); // Convert amount to number
+    await saveRate(rate, rateInput, amountNumber, transactionType, flooredValue.toLocaleString()); // Call the saveRate function
     onSave(); // Trigger the save refresh in the parent
     onClose(); // Close the modal after saving
   };

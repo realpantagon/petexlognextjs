@@ -72,6 +72,29 @@ const MainContent = ({ refreshTrigger }) => {
     handlePrint(selectedItems);
   };
 
+  const formatMoney = (amount) => {
+    return amount.toLocaleString( { style: 'currency', currency: 'USD' });
+  };
+
+  const calculateSumByCurrency = (data) => {
+    const sums = {};
+    data.forEach((item) => {
+      const currency = item.fields.Currency;
+      const total = parseFloat(item.fields.Total1);
+      const amount = parseFloat(item.fields.Amount);
+      if (!sums[currency]) {
+        sums[currency] = { totalSum: 0, amountSum: 0 };
+      }
+      sums[currency].totalSum += total;
+      sums[currency].amountSum += amount;
+    });
+    return sums;
+  };
+
+  const calculateTotalSum = (sums) => {
+    return Object.values(sums).reduce((acc, curr) => acc + curr.totalSum, 0);
+  };
+
   return (
     <div className="p-6 h-[80vh] w-full overflow-y-auto">
       <h1 className="text-2xl font-semibold mb-4">Transaction Details</h1>
@@ -174,9 +197,9 @@ const MainContent = ({ refreshTrigger }) => {
                     >
                       {item.fields.Currency}
                     </th>
-                    <td className="px-6 py-4">{item.fields.Amount}</td>
+                    <td className="px-6 py-4">{formatMoney(item.fields.Amount)}</td>
                     <td className="px-6 py-4">{item.fields.Rate}</td>
-                    <td className="px-6 py-4">{item.fields.Total1}</td> {/* Display Total with 2 decimal places */}
+                    <td className="px-6 py-4">{formatMoney(item.fields.Total1)}</td> {/* Display Total with 2 decimal places */}
                     <td className="px-6 py-4">{item.fields.Type}</td>
                     <td className="px-6 py-4">
                       {formatDate(item.fields.Created)}
@@ -186,6 +209,33 @@ const MainContent = ({ refreshTrigger }) => {
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Summary Table */}
+          <div className="mt-4">
+            <h2 className="text-xl font-semibold mb-2">Summary</h2>
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 bg-white">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+                <tr>
+                  <th scope="col" className="px-6 py-3">Currency</th>
+                  <th scope="col" className="px-6 py-3">Amount Sum</th>
+                  <th scope="col" className="px-6 py-3">Total Sum</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(calculateSumByCurrency(data)).map(([currency, sums]) => (
+                  <tr key={currency} className="bg-white border-b border-gray-200 hover:bg-gray-100">
+                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{currency}</td>
+                    <td className="px-6 py-4">{formatMoney(sums.amountSum)}</td>
+                    <td className="px-6 py-4">{formatMoney(sums.totalSum)}</td>
+                  </tr>
+                ))}
+                <tr className="bg-gray-100">
+                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">Total</td>
+                  <td className="px-6 py-4"></td>
+                  <td className="px-6 py-4">{formatMoney(calculateTotalSum(calculateSumByCurrency(data)))}</td>
+                </tr>
               </tbody>
             </table>
           </div>

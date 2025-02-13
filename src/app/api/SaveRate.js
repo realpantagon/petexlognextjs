@@ -5,9 +5,7 @@ const API_TOKEN = 'patJrmzFDvT8Qncac.657ccc7a50caaebd1e4a3a390acca8e67d06047dd77
 
 export const saveRate = async (rate, rateInput, amount, transactionType, calculatedValue) => {
   try {
-    const amountWithoutCommas = amount.replace(/,/g, '');
-
-    if (amountWithoutCommas === "" || parseFloat(amountWithoutCommas) <= 0) {
+    if (amount <= 0) {
       alert("Please enter a valid positive amount.");
       return;
     }
@@ -18,7 +16,7 @@ export const saveRate = async (rate, rateInput, amount, transactionType, calcula
           fields: {
             Currency: `${rate.cur}`,
             Rate: rateInput,
-            Amount: amountWithoutCommas, // Send the raw number without commas
+            Amount: amount, // Ensure Amount is sent as a number
             Type: transactionType,
             Total1: parseFloat(calculatedValue.replace(/,/g, '')), // Ensure Total1 is sent as a number
           },

@@ -7,9 +7,7 @@ import MainContent from "../app/components/RecordContent"; // Import the MainCon
 const MainPage = () => {
   const [selectedRate, setSelectedRate] = useState(null); // State to store the selected rate
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control the modal visibility
-
-  // Function to refresh data in MainContent
-  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(false); // Function to refresh data in MainContent
 
   const handleRowClick = (rate) => {
     setSelectedRate(rate); // Set the selected rate
@@ -26,11 +24,11 @@ const MainPage = () => {
   };
 
   return (
-    <div className="container flex">
-      <div className="w-4/12 p-4 bg-stone-100">
+    <div className="flex h-screen w-screen">
+      <div className="w-4/12 h-full p-4 bg-stone-100 overflow-auto">
         <RateTable onRowClick={handleRowClick} />
       </div>
-      <div className="w-8/12 p-4">
+      <div className="w-8/12 h-full p-4 overflow-auto">
         <MainContent refreshTrigger={refreshTrigger} /> {/* Pass refreshTrigger to MainContent */}
       </div>
 
