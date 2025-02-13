@@ -69,7 +69,10 @@ const MainContent = ({ refreshTrigger }) => {
 
   const handlePrintSelected = () => {
     const selectedItems = data.filter((item) => selectedRows.includes(item.id));
-    handlePrint(selectedItems);
+    const filteredSelectedItems = selectedItems.filter((item) => {
+      return selectedCurrency ? item.fields.Currency === selectedCurrency : true;
+    });
+    handlePrint(filteredSelectedItems);
   };
 
   const formatMoney = (amount) => {

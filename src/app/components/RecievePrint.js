@@ -1,7 +1,10 @@
 const RecievePrint = (items, formatDate) => {
-  // Format number with commas and 2 decimal places
-  const formatMoney = (amount) => {
-    return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+  // Format number with commas and optionally 2 decimal places
+  const formatMoney = (amount, withDecimals = true) => {
+    return new Intl.NumberFormat('en-US', { 
+      minimumFractionDigits: withDecimals ? 2 : 0, 
+      maximumFractionDigits: withDecimals ? 2 : 0 
+    }).format(amount);
   };
 
   const totalAmount = items.reduce(
@@ -31,7 +34,7 @@ const RecievePrint = (items, formatDate) => {
             <tr>
               <td style="text-align: center; padding: 8px 0;">${item.fields.Currency}</td>
               <td style="text-align: center; padding: 8px 0;">${item.fields.Rate}</td>
-              <td style="text-align: center; padding: 8px 0;">${item.fields.Amount}</td>
+              <td style="text-align: center; padding: 8px 0;">${formatMoney(item.fields.Amount, false)}</td>
               <td style="text-align: center; padding: 8px 0;">${formatMoney(item.fields.Total1)}</td>
             </tr>
           `
