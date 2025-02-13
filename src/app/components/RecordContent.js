@@ -4,12 +4,14 @@ import { fetchData } from "../api/GetTransaction"; // Import fetchData from the 
 import PrintIcon from '@mui/icons-material/Print';
 import RecievePrint from "./RecievePrint"; // Import the RecievePrint component
 import Spinner from './Spinner'; // Import Spinner component
+import ReplayIcon from '@mui/icons-material/Replay'; // Import ReplayIcon
 
 const MainContent = ({ refreshTrigger }) => {
   const [data, setData] = useState([]); // State to store the fetched data
   const [isLoading, setIsLoading] = useState(true); // Track loading state
   const [selectedCurrency, setSelectedCurrency] = useState(""); // Selected currency for filtering
   const [selectedRows, setSelectedRows] = useState([]); // Track selected rows
+  const [lastFetchTime, setLastFetchTime] = useState(null); // Track last fetch time
 
   // Fetch the data on component mount and when refreshTrigger changes
   useEffect(() => {
@@ -19,6 +21,7 @@ const MainContent = ({ refreshTrigger }) => {
       const sortedData = fetchedData.sort((a, b) => new Date(b.fields.Created) - new Date(a.fields.Created));
       setData(sortedData); // Set the sorted data to the state
       setIsLoading(false); // Stop loading
+      setLastFetchTime(new Date()); // Update last fetch time
     };
 
     getData();
@@ -58,6 +61,10 @@ const MainContent = ({ refreshTrigger }) => {
     return date.toLocaleString(); // Format to a readable date-time string
   };
 
+  const formatTime = (date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   // Function to handle print
   const handlePrint = (items) => {
     const printContent = RecievePrint(items, formatDate);
@@ -73,6 +80,15 @@ const MainContent = ({ refreshTrigger }) => {
       return selectedCurrency ? item.fields.Currency === selectedCurrency : true;
     });
     handlePrint(filteredSelectedItems);
+  };
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    const fetchedData = await fetchData();
+    const sortedData = fetchedData.sort((a, b) => new Date(b.fields.Created) - new Date(a.fields.Created));
+    setData(sortedData);
+    setIsLoading(false);
+    setLastFetchTime(new Date()); // Update last fetch time
   };
 
   const formatMoney = (amount) => {
@@ -128,6 +144,14 @@ const MainContent = ({ refreshTrigger }) => {
             <button className="ml-4 p-2 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 transition duration-150 ease-in-out" onClick={handlePrintSelected}>
               <PrintIcon />
             </button>
+            <button className="ml-4 p-2 bg-green-500 text-white rounded-lg shadow-sm hover:bg-green-600 transition duration-150 ease-in-out" onClick={handleRefresh}>
+              <ReplayIcon />
+            </button>
+            {lastFetchTime && (
+              <span className="ml-4 text-sm text-gray-500">
+                Last Update: {formatTime(lastFetchTime)}
+              </span>
+            )}
           </div>
           {/* Table */}
           <div className="relative overflow-x-auto shadow-md sm:rounded-lg">

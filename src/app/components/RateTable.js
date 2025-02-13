@@ -8,6 +8,11 @@ const RateTable = ({ onRowClick }) => {
   const [rates, setRates] = useState([]);
   const [selectedRow, setSelectedRow] = useState(null); // Track selected row
   const [isLoading, setIsLoading] = useState(false); // Track loading state
+  const [lastFetchTime, setLastFetchTime] = useState(null); // Track last fetch time
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   // Fetch rates when the component mounts or refreshes
   const getRates = async () => {
@@ -38,6 +43,7 @@ const RateTable = ({ onRowClick }) => {
   
     setRates(sortedRates);
     setIsLoading(false); // Stop loading
+    setLastFetchTime(new Date()); // Update last fetch time
   };
   
 
@@ -89,7 +95,11 @@ const RateTable = ({ onRowClick }) => {
         >
           Refresh Rates
         </button>
-
+        {lastFetchTime && (
+          <span className="block mb-4 text-sm text-gray-500">
+            Last Update: {formatTime(lastFetchTime)}
+          </span>
+        )}
         {/* Loading Spinner */}
         {isLoading ? (
           <Spinner /> // Show Spinner when loading
