@@ -25,10 +25,10 @@ const MainPage = () => {
 
   return (
     <div className="flex h-screen w-screen">
-      <div className="w-4/12 h-full p-4 bg-stone-100 overflow-auto">
+      <div className="w-3/12 h-full pt-4 overflow-auto">
         <RateTable onRowClick={handleRowClick} />
       </div>
-      <div className="w-8/12 h-full p-4 overflow-auto">
+      <div className="w-9/12 h-full p-4 overflow-auto">
         <MainContent refreshTrigger={refreshTrigger} /> {/* Pass refreshTrigger to MainContent */}
       </div>
 

@@ -10,6 +10,7 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
   const [amountError, setAmountError] = useState(false); // State for amount error
   const [transactionType, setTransactionType] = useState("Buying"); // State for transaction type (Buying/Selling)
   const [calculatedValue, setCalculatedValue] = useState(""); // State for calculated value
+  const [isSaving, setIsSaving] = useState(false); // State to prevent double-click
 
   // Handle changes for rate input
   const handleRateChange = (e) => {
@@ -66,11 +67,14 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
       setAmountError(true); // Set error if amount is empty
       return;
     }
+    if (isSaving) return; // Prevent double-click
+    setIsSaving(true); // Set saving state to true
     const flooredValue = Math.floor(parseFloat(calculatedValue.replace(/,/g, '')));
     const amountNumber = parseFloat(amount.replace(/,/g, '')); // Convert amount to number
     await saveRate(rate, rateInput, amountNumber, transactionType, flooredValue.toLocaleString()); // Call the saveRate function
     onSave(); // Trigger the save refresh in the parent
     onClose(); // Close the modal after saving
+    setIsSaving(false); // Reset saving state
   };
 
   return (
@@ -161,8 +165,9 @@ const Modal = ({ isOpen, onClose, rate, onSave }) => {
 
           {/* Save button */}
           <button
-            className="bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`bg-blue-500 text-white py-2 px-6 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleSave} // Trigger the save action
+            disabled={isSaving} // Disable button while saving
           >
             Save
           </button>

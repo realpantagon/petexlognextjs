@@ -91,7 +91,7 @@ const RateTable = ({ onRowClick }) => {
         {/* Refresh Button */}
         <button
           onClick={handleRefresh}
-          className="mb-4 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+          className=" bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
         >
           Refresh Rates
         </button>

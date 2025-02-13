@@ -12,6 +12,7 @@ const MainContent = ({ refreshTrigger }) => {
   const [selectedCurrency, setSelectedCurrency] = useState(""); // Selected currency for filtering
   const [selectedRows, setSelectedRows] = useState([]); // Track selected rows
   const [lastFetchTime, setLastFetchTime] = useState(null); // Track last fetch time
+  const [newlyAddedRow, setNewlyAddedRow] = useState(null); // Track newly added row
 
   // Fetch the data on component mount and when refreshTrigger changes
   useEffect(() => {
@@ -22,6 +23,12 @@ const MainContent = ({ refreshTrigger }) => {
       setData(sortedData); // Set the sorted data to the state
       setIsLoading(false); // Stop loading
       setLastFetchTime(new Date()); // Update last fetch time
+      setNewlyAddedRow(sortedData[0]?.id); // Set the newly added row
+
+      // Remove the highlight after the animation ends
+      setTimeout(() => {
+        setNewlyAddedRow(null);
+      }, 4000); // 2 times of 2s animation
     };
 
     getData();
@@ -58,7 +65,7 @@ const MainContent = ({ refreshTrigger }) => {
   // Function to format date time
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleString(); // Format to a readable date-time string
+    return date.toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }); // Format to a readable date-time string without seconds
   };
 
   const formatTime = (date) => {
@@ -115,8 +122,11 @@ const MainContent = ({ refreshTrigger }) => {
   };
 
   return (
-    <div className="p-6 h-[80vh] w-full overflow-y-auto">
-      <h1 className="text-2xl font-semibold mb-4">Transaction Details</h1>
+    <div className="p-6 h-full w-full overflow-y-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-semibold">Transaction Details</h1>
+        <img src="/PeterXReceipt.png" alt="Logo" className="h-10" /> {/* Add your logo here */}
+      </div>
       {isLoading ? (
         <Spinner /> // Show Spinner when loading
       ) : (
@@ -199,7 +209,7 @@ const MainContent = ({ refreshTrigger }) => {
                 {filteredData.map((item) => (
                   <tr
                     key={item.id}
-                    className="bg-white border-b border-gray-200 hover:bg-gray-100"
+                    className={`bg-white border-b border-gray-200 hover:bg-gray-100 ${item.id === newlyAddedRow ? 'animate-breathing' : ''}`} // Add animation class
                   >
                     <td className="w-4 p-4">
                       <div className="flex items-center">
@@ -242,7 +252,7 @@ const MainContent = ({ refreshTrigger }) => {
           {/* Summary Table */}
           <div className="mt-4">
             <h2 className="text-xl font-semibold mb-2">Summary</h2>
-            <table className="w-full text-sm text-left rtl:text-right text-gray-500 bg-white">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 bg-white shadow-md rounded-lg">
               <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                 <tr>
                   <th scope="col" className="px-6 py-3">Currency</th>
@@ -271,5 +281,26 @@ const MainContent = ({ refreshTrigger }) => {
     </div>
   );
 };
+
+// Add breathing animation styles
+const styles = `
+@keyframes breathing {
+  0% { background-color: #f0fcfd; }
+  50% { background-color: #d9f9fb; }
+  100% { background-color: #f0fcfd; }
+}
+
+.animate-breathing {
+  animation: breathing 2s ease-in-out 2;
+}
+`;
+
+// Inject styles into the document head
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = styles;
+  document.head.appendChild(styleSheet);
+}
 
 export default MainContent;
